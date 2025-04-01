@@ -1,6 +1,11 @@
+import sys
+import os
+
 import pytest
 from flask import url_for
-from app import create_app
+from app import posts_list
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 def test_post_template_used(client, sample_post):
     response = client.get(url_for('post', post_id=sample_post.id))
