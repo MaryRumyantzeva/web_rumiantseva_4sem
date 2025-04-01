@@ -7,6 +7,13 @@ from app import posts_list
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
+def test_index_page(client):
+    response = client.get(url_for('index'))
+    assert response.status_code == 200
+    assert b'<!doctype html>' in response.data
+    response_text = response.data.decode('utf-8').strip()
+    assert 'Задание к лабораторной работе' in response_text
+
 def test_post_template_used(client, sample_post):
     response = client.get(url_for('post', post_id=sample_post.id))
     assert b"<h1 class=\"text-center\">" in response.data
