@@ -1,11 +1,11 @@
 import sys
 import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 import pytest
 from flask import url_for
-from lab1.app import posts_list
+from app import posts_list
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 def test_index_page(client):
     response = client.get(url_for('index'))
