@@ -3,7 +3,7 @@ import os
 
 import pytest
 from flask import url_for
-from app import posts_list
+from lab1.app import posts_list
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
