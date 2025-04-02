@@ -18,6 +18,7 @@ def test_post_template_used(client, sample_post):
     response = client.get(url_for('post', post_id=sample_post.id))
     assert b"<h1 class=\"text-center\">" in response.data
 
+
 def test_post_data_rendered(client, sample_post):
     response = client.get(url_for('post', post_id=sample_post.id))
     assert sample_post.title.encode() in response.data
