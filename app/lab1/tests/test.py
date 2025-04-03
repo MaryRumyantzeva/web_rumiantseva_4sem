@@ -1,10 +1,12 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append('.')
 
 import pytest
 from flask import url_for
-from app.lab1.app import posts_list, app
+from lab1.app import posts_list, app
 
 
 @pytest.fixture
