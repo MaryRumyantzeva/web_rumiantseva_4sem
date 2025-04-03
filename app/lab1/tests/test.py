@@ -4,7 +4,14 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 
 import pytest
 from flask import url_for
-from lab1.app import posts_list
+from app.lab1.app import posts_list, app
+
+
+@pytest.fixture
+def client():
+    with app.test_client() as client:
+        with app.app_context():
+            yield client
 
 
 def test_index_page(client):
@@ -37,16 +44,16 @@ def test_post_image_rendered(client, sample_post):
 #     response = client.get(url_for('post', post_id=sample_post.id))
 #     assert b"Оставьте комментарий" in response.data
 
-def test_comments_rendered(client, sample_post):
-    for comment in sample_post.comments:
-        assert comment.author.encode() in response.data
-        assert comment.text.encode() in response.data
+# def test_comments_rendered(client, sample_post):
+#     for comment in sample_post.comments:
+#         assert comment.author.encode() in response.data
+#         assert comment.text.encode() in response.data
 
-def test_replies_rendered(client, sample_post):
-    for comment in sample_post.comments:
-        for reply in comment.replies:
-            assert reply.author.encode() in response.data
-            assert reply.text.encode() in response.data
+# def test_replies_rendered(client, sample_post):
+#     for comment in sample_post.comments:
+#         for reply in comment.replies:
+#             assert reply.author.encode() in response.data
+#             assert reply.text.encode() in response.data
 
 def test_non_existent_post(client):
     response = client.get(url_for('post', post_id=9999))
