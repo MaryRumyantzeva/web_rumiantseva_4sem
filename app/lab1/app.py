@@ -4,7 +4,7 @@ from faker import Faker
 
 fake = Faker()
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='./templates')
 application = app
 
 images_ids = ['7d4e9175-95ea-4c5f-8be5-92a6b708bb3c',
