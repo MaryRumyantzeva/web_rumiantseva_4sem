@@ -4,7 +4,7 @@
     <div class="w-75 mx-auto mt-3">
         <h1 class="text-center">{{ post.title }}</h1>
         <p class="my-3">{{ post.author }}</p>
-        <p class="my-1">{{ post.date }}</p>
+        <p class="my-1">Опубликовано {{ post.date.strftime('%d.%m.%Y') }}.</p>
         <img src="{{ url_for('static', filename='images/' + post.image_id) }}" alt="Card image cap" class="mw-100 my-3">
         <p class="my-3 text-wrap text-break">{{ post.text }}</p>
         <div class="modal-content flex-column">
@@ -33,11 +33,6 @@
                         {% for reply in comment.replies %}
                             <img src="{{url_for('static', filename='images/' + 'avacom.jpg')}}" style="width: 40px; height: 40px" class="avacom" alt="avacom">
                             <p class="comtext"><strong>{{ reply.author }}:</strong> {{ reply.text }}</p>
-                            <div>
-                                <img src="{{url_for('static', filename='images/' + 'avacom.jpg')}}" style="width: 40px; height: 40px" class="avacom" alt="avacom">
-                                <p class="comtext"><strong>{{ comment.author }}</strong></p>
-                                <p class="comtext">{{ comment.text }}</p>
-                            </div>
                         {% endfor %}
                     </div>
                 {% endif %}

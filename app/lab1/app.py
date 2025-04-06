@@ -24,6 +24,7 @@ def generate_comments(replies=True):
 
 def generate_post(i):
     return {
+        'id': i,
         'title': 'Заголовок поста',
         'text': fake.paragraph(nb_sentences=100),
         'author': fake.name(),
@@ -44,13 +45,14 @@ def posts():
 
 @app.route('/posts/<int:index>')
 def post(index):
+    if index < 0 or index >= len(posts_list):
+        return "Пост не найден", 404
     p = posts_list[index]
     return render_template('post.html', title=p['title'], post=p)
 
 @app.route('/about')
 def about():
     return render_template('about.html', title='Об авторе')
-
 
 if __name__ == '__main__':
     app.run(debug=True)
