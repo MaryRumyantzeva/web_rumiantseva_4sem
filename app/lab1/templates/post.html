@@ -1,42 +1,67 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div class="w-75 mx-auto mt-3">
-        <h1 class="text-center">{{ post.title }}</h1>
-        <p class="my-3">{{ post.author }}</p>
-        <p class="my-1">Опубликовано {{ post.date.strftime('%d.%m.%Y') }}.</p>
-        <img src="{{ url_for('static', filename='images/' + post.image_id) }}" alt="Card image cap" class="mw-100 my-3">
-        <p class="my-3 text-wrap text-break">{{ post.text }}</p>
-        <div class="modal-content flex-column">
-            <div class="modal-header">
-                <h5 class="my-0">Оставьте комментарий</h5>
-            </div>
-            <div class="modal-body">
-                <form>
-                    <textarea name="comments" id="comment" cols="100" rows="3" class="mw-100 my-0"></textarea>
-                </form>
-            </div>
-            <div class="modal-footer mt-0">
-                <button type="button" class="btn btn-primary my-0">Отправить</button>
-            </div>
+<div class="w-75 mx-auto mt-3">
+    <h1 class="text-center">{{ post.title }}</h1>
+    <p class="my-3"><strong>Автор:</strong> {{ post.author }}</p>
+    <p class="my-1 text-muted">
+        Опубликовано {{ post.date.strftime('%d.%m.%Y') if post.date else '' }}
+    </p>
+    {% if post.image_id %}
+        <img src="{{ url_for('static', filename='images/' + post.image_id) }}" alt="Изображение поста" class="img-fluid my-3">
+    {% endif %}
+    <p class="my-3 text-wrap text-break">{{ post.text }}</p>
+    <div class="card my-4">
+        <div class="card-header">
+            <h5 class="my-0">Оставьте комментарий</h5>
         </div>
-        {% for comment in post.comments %}
-            <div class="comment-block">
-                <img src="{{url_for('static', filename='images/' + 'avacom.jpg')}}" style="width: 40px; height: 40px" class="avacom" alt="avacom">
-                <div>
-                    <p class="comtext"><strong>{{ comment.author }}</strong></p>
-                    <p class="comtext">{{ comment.text }}</p>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('add_comment', post_id=post.id) }}">
+                <div class="mb-2">
+                    <label for="author">Ваше имя:</label>
+                    <input type="text" name="author" id="author" class="form-control" required>
                 </div>
-                
-                {% if comment.replies %}
-                    <div class="reply-block">
+                <div class="mb-2">
+                    <label for="text">Комментарий:</label>
+                    <textarea name="text" id="text" rows="3" class="form-control" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Отправить</button>
+            </form>
+        </div>
+    </div>
+    {% for comment in post.comments %}
+        <div class="d-flex mb-3">
+            <div class="flex-shrink-0 me-3">
+                <img src="{{ url_for('static', filename='images/' + (comment.avatar if comment.avatar is defined else 'avacom.jpg')) }}" 
+                     alt="Avatar" style="width: 40px; height: 40px" class="rounded-circle">
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="mb-1">
+                    {{ comment.author }}
+                    {% if comment.date is defined %}<small class="text-muted">— {{ comment.date.strftime('%d.%m.%Y') }}</small>{% endif %}
+                </h6>
+                <p class="mb-2">{{ comment.text }}</p>
+                {% if comment.replies is defined and comment.replies %}
+                    <div class="ms-4 border-start ps-3">
                         {% for reply in comment.replies %}
-                            <img src="{{url_for('static', filename='images/' + 'avacom.jpg')}}" style="width: 40px; height: 40px" class="avacom" alt="avacom">
-                            <p class="comtext"><strong>{{ reply.author }}:</strong> {{ reply.text }}</p>
+                            <div class="d-flex mb-2">
+                                <div class="flex-shrink-0 me-2">
+                                    <img src="{{ url_for('static', filename='images/' + (reply.avatar if reply.avatar is defined else 'avacom.jpg')) }}" 
+                                         alt="Avatar" style="width: 30px; height: 30px" class="rounded-circle">
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        {{ reply.author }}
+                                        {% if reply.date is defined %}<small class="text-muted">— {{ reply.date.strftime('%d.%m.%Y') }}</small>{% endif %}
+                                    </h6>
+                                    <p class="mb-0">{{ reply.text }}</p>
+                                </div>
+                            </div>
                         {% endfor %}
                     </div>
                 {% endif %}
             </div>
-        {% endfor %}
-    </div>
+        </div>
+    {% endfor %}
+</div>
 {% endblock %}
