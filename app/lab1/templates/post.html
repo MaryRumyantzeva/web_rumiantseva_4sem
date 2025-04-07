@@ -30,38 +30,30 @@
         </div>
     </div>
     {% for comment in post.comments %}
-        <div class="d-flex mb-3">
-            <div class="flex-shrink-0 me-3">
-                <img src="{{ url_for('static', filename='images/' + (comment.avatar if comment.avatar is defined else 'avacom.jpg')) }}" 
-                     alt="Avatar" style="width: 40px; height: 40px" class="rounded-circle">
-            </div>
-            <div class="flex-grow-1">
-                <h6 class="mb-1">
-                    {{ comment.author }}
-                    {% if comment.date is defined %}<small class="text-muted">— {{ comment.date.strftime('%d.%m.%Y') }}</small>{% endif %}
-                </h6>
-                <p class="mb-2">{{ comment.text }}</p>
-                {% if comment.replies is defined and comment.replies %}
-                    <div class="ms-4 border-start ps-3">
-                        {% for reply in comment.replies %}
-                            <div class="d-flex mb-2">
-                                <div class="flex-shrink-0 me-2">
-                                    <img src="{{ url_for('static', filename='images/' + (reply.avatar if reply.avatar is defined else 'avacom.jpg')) }}" 
-                                         alt="Avatar" style="width: 30px; height: 30px" class="rounded-circle">
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">
-                                        {{ reply.author }}
-                                        {% if reply.date is defined %}<small class="text-muted">— {{ reply.date.strftime('%d.%m.%Y') }}</small>{% endif %}
-                                    </h6>
-                                    <p class="mb-0">{{ reply.text }}</p>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
+    <div class="d-flex mb-3">
+        <div class="flex-shrink-0">
+            <img src="{{ url_for('static', filename='images/avacom.jpg') }}" alt="avatar" width="50" height="50">
         </div>
+        <div class="flex-grow-1 ms-3">
+            <h5 class="mb-1">{{ comment.author }}</h5>
+            <p>{{ comment.text }}</p>
+
+            {% if comment.replies %}
+            {% for reply in comment.replies %}
+            <div class="d-flex mt-3">
+                <div class="flex-shrink-0">
+                    <img src="{{ url_for('static', filename='images/avacom.jpg') }}" alt="avatar" width="40" height="40">
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="mb-1">{{ reply.author }}</h6>
+                    <p>{{ reply.text }}</p>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
     {% endfor %}
+
 </div>
 {% endblock %}
