@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="my-4">Параметры URL</h1>
+
+{% if params %}
+    <ul class="list-group">
+        {% for key, value in params.items() %}
+            <li class="list-group-item">
+                <strong>{{ key }}:</strong> {{ value }}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <div class="alert alert-warning mt-3" role="alert">
+        Нет переданных параметров. Попробуйте <br>
+        <code>?name=Маша&group=231-329</code> в адресной строке.
+    </div>
+{% endif %}
+{% endblock %}

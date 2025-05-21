@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="my-4">Работа с Cookie</h1>
+
+{% if cookie %}
+    <div class="alert alert-success">Кука уже была установлена. Удаляем…</div>
+{% else %}
+    <div class="alert alert-info">Кука установлена!</div>
+{% endif %}
+{% endblock %}

@@ -9,48 +9,58 @@ def index():
 
 @app.route('/url')
 def url_params():
-    return render_template('url_params.html', params=request.args)
+    params = request.args
+    return render_template('url.html', params=params)
 
 @app.route('/headers')
 def headers():
-    return render_template('headers.html', headers=request.headers)
+    headers = request.headers
+    return render_template('headers.html', headers=headers)
 
-@app.route('/cookies')
-def cookies():
-    cookie_name = 'example_cookie'
-    resp = make_response(render_template('cookies.html', cookie=request.cookies.get(cookie_name)))
-    if cookie_name in request.cookies:
-        resp.set_cookie(cookie_name, '', max_age=0)  # Удаление cookie
+
+@app.route('/cookie')
+def cookie():
+    response = render_template('cookie.html')
+    test_cookie = request.cookies.get('visited')
+    if test_cookie:
+        response = app.make_response(render_template('cookie.html', cookie=test_cookie))
+        response.set_cookie('visited', '', expires=0)
     else:
-        resp.set_cookie(cookie_name, 'my_value')     # Установка cookie
-    return resp
+        response = app.make_response(render_template('cookie.html', cookie=None))
+        response.set_cookie('visited', 'yes')
+    return response
+
+
 
 @app.route('/form', methods=['GET', 'POST'])
-def form_params():
+def form_data():
+    data = None
     if request.method == 'POST':
-        return render_template('form_params.html', form_data=request.form)
-    return render_template('form_params.html')
+        data = request.form
+    return render_template('form.html', data=data)
+
+
 
 @app.route('/phone', methods=['GET', 'POST'])
 def phone():
     error = None
-    phone_number = ""
-    formatted_number = ""
+    formatted = None
+    raw = ''
 
     if request.method == 'POST':
-        phone_number = request.form.get('phone', '').strip()
-        digits = re.sub(r'\D', '', phone_number)
+        raw = request.form['phone']
+        digits = re.sub(r'\D', '', raw)
+        allowed = re.match(r'^[\d\s\-\+\(\)\.]+$', raw)
 
-        if not re.match(r'^[\d\s\-\.\(\)\+]*$', phone_number):
+        if not allowed:
             error = 'Недопустимый ввод. В номере телефона встречаются недопустимые символы.'
-        elif not (len(digits) == 10 or (len(digits) == 11 and (digits.startswith('8') or digits.startswith('7')))):
+        elif len(digits) not in (10, 11):
             error = 'Недопустимый ввод. Неверное количество цифр.'
+        elif len(digits) == 11 and digits.startswith(('8', '7')):
+            formatted = f'8-{digits[-10:-7]}-{digits[-7:-4]}-{digits[-4:-2]}-{digits[-2:]}'
+        elif len(digits) == 10:
+            formatted = f'8-{digits[:3]}-{digits[3:6]}-{digits[6:8]}-{digits[8:]}'
         else:
-            if len(digits) == 11:
-                digits = digits[-10:]
-            formatted_number = f"8-{digits[0:3]}-{digits[3:6]}-{digits[6:8]}-{digits[8:]}"
+            error = 'Недопустимый ввод. Неверное количество цифр.'
 
-    return render_template('phone_form.html',
-                           error=error,
-                           original_input=phone_number,
-                           formatted=formatted_number)
+    return render_template('phone.html', error=error, raw=raw, formatted=formatted)
