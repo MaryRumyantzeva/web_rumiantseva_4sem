@@ -39,12 +39,14 @@ posts_list = sorted([generate_post(i) for i in range(5)], key=lambda p: p['date'
 def index():
     return render_template('index.html')
 
+
 @app.route('/posts')
 def posts():
     return render_template('posts.html', title='Посты', posts=posts_list)
 
-@app.route('/posts/<int:index>')
+@app.route('/posts/<index>')
 def post(index):
+    index = int(index)
     if index < 0 or index >= len(posts_list):
         return "Пост не найден", 404
     p = posts_list[index]
