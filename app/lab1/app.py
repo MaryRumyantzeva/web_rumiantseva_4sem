@@ -1,5 +1,5 @@
 import random
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from faker import Faker
 
 fake = Faker()
@@ -52,9 +52,21 @@ def post(index):
     p = posts_list[index]
     return render_template('post.html', title=p['title'], post=p)
 
+
+@app.route('/add_comment/<post_id>', methods=['POST'])
+def add_comment(post_id):
+    post = posts_list[int(post_id)]
+    comment = dict(request.form)
+    post['comments'].append(comment)
+    return render_template('post.html', title=post['title'], post=post)
+
+
+
 @app.route('/about')
 def about():
     return render_template('about.html', title='Об авторе')
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
