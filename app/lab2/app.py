@@ -30,22 +30,6 @@ def cookies():
 def forms():
     return render_template('forms.html', title="Параметры формы")
 
-@app.route('/calc')
-def calc():
-    a = float(request.args.get('a', 0))
-    b = float(request.args.get('b', 0))
-    operator = request.args.get('operator')
-
-    OPERATIONS = {
-        "+": lambda a, b: a + b,
-        "-": lambda a, b: a - b,
-        "*": lambda a, b: a * b,
-        "/": lambda a, b: a / b,
-    }
-
-    result = OPERATIONS.get(operator, lambda a, b: 0)(a, b)
-
-    return render_template('calc.html', title="Калькулятор", result=result)
 
 @app.route("/phoneNumber", methods=["POST", "GET"])
 def phoneNumber():
