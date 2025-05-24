@@ -57,9 +57,13 @@ def test_comment_form_present(client, sample_post):
 
 def test_comments_rendered(client, sample_post):
     response = client.get(f'/posts/{sample_post["id"]}')
+    html = response.data.decode()
     for comment in sample_post["comments"]:
-        assert comment["author"] in response.data.decode()
-        assert comment["text"] in response.data.decode()
+        assert comment["author"] in html, f"Author {comment['author']} not found in HTML"
+        assert comment["text"] in html, f"Comment text '{comment['text']}' not found in HTML"
+
+
+
 
 def test_comment_replies_rendered(client, sample_post):
     response = client.get(f'/posts/{sample_post["id"]}')

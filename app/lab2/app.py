@@ -1,66 +1,75 @@
-from flask import Flask, request, render_template, redirect, make_response, url_for
+from flask import Flask, render_template, make_response, request
 import re
-
+    
 app = Flask(__name__)
+
+application = app
 
 @app.route('/')
 def index():
-    return render_template('base.html')
+    return render_template('index.html')
 
 @app.route('/url')
-def url_params():
-    params = request.args
-    return render_template('url.html', params=params)
+def url():
+    return render_template('url.html', title="Параметры URL", )
 
 @app.route('/headers')
 def headers():
-    headers = request.headers
-    return render_template('headers.html', headers=headers)
+    return render_template('headers.html', title="Заголовки")
 
-
-@app.route('/cookie')
-def cookie():
-    response = render_template('cookie.html')
-    test_cookie = request.cookies.get('visited')
-    if test_cookie:
-        response = app.make_response(render_template('cookie.html', cookie=test_cookie))
-        response.set_cookie('visited', '', expires=0)
+@app.route('/cookies')
+def cookies():
+    resp = make_response(render_template('cookies.html', title="Куки"))
+    if 'user' in request.cookies:
+        resp.delete_cookie('user')
     else:
-        response = app.make_response(render_template('cookie.html', cookie=None))
-        response.set_cookie('visited', 'yes')
-    return response
+        resp.set_cookie('user', 'admin')
+    return resp
 
+@app.route('/forms', methods=['GET', 'POST'])
+def forms():
+    return render_template('forms.html', title="Параметры формы")
 
+@app.route('/calc')
+def calc():
+    a = float(request.args.get('a', 0))
+    b = float(request.args.get('b', 0))
+    operator = request.args.get('operator')
 
-@app.route('/form', methods=['GET', 'POST'])
-def form_data():
-    data = None
+    OPERATIONS = {
+        "+": lambda a, b: a + b,
+        "-": lambda a, b: a - b,
+        "*": lambda a, b: a * b,
+        "/": lambda a, b: a / b,
+    }
+
+    result = OPERATIONS.get(operator, lambda a, b: 0)(a, b)
+
+    return render_template('calc.html', title="Калькулятор", result=result)
+
+@app.route("/phoneNumber", methods=["POST", "GET"])
+def phoneNumber():
     if request.method == 'POST':
-        data = request.form
-    return render_template('form.html', data=data)
+        phone = request.form["phone"]
 
+        phoneNumbers = re.findall("\d{1}", phone)
+        if not phoneNumbers:
+            phoneNumbers.append("")
 
+        error = ""
+        if not all([symbol in [" ", "(", ")", "-", ".", "+", *list(map(str, list(range(10))))] for symbol in phone]):
+            error = "Ошибка! Вы ввели недопустимые символы."
+        elif phoneNumbers[0] in ["7", "8"] and len(phoneNumbers) != 11:
+            error = "Ошибка! Вы ввели неверное количество цифр."
+        elif phoneNumbers[0] not in ["7", "8"] and len(phoneNumbers) != 10:
+            error = "Ошибка! Вы ввели недопустимое количество цифр."
 
-@app.route('/phone', methods=['GET', 'POST'])
-def phone():
-    error = None
-    formatted = None
-    raw = ''
+        if error:
+            return render_template("phoneNumber.html", title="Проверка телефона", phone=error)
 
-    if request.method == 'POST':
-        raw = request.form['phone']
-        digits = re.sub(r'\D', '', raw)
-        allowed = re.match(r'^[\d\s\-\+\(\)\.]+$', raw)
+        if len(phoneNumbers) == 10:
+            phoneNumbers.insert(0, "8")
 
-        if not allowed:
-            error = 'Недопустимый ввод. В номере телефона встречаются недопустимые символы.'
-        elif len(digits) not in (10, 11):
-            error = 'Недопустимый ввод. Неверное количество цифр.'
-        elif len(digits) == 11 and digits.startswith(('8', '7')):
-            formatted = f'8-{digits[-10:-7]}-{digits[-7:-4]}-{digits[-4:-2]}-{digits[-2:]}'
-        elif len(digits) == 10:
-            formatted = f'8-{digits[:3]}-{digits[3:6]}-{digits[6:8]}-{digits[8:]}'
-        else:
-            error = 'Недопустимый ввод. Неверное количество цифр.'
-
-    return render_template('phone.html', error=error, raw=raw, formatted=formatted)
+        return render_template("phoneNumber.html", title="Проверка телефона", phone="8-{1}{2}{3}-{4}{5}{6}-{7}{8}-{9}{10}".format(*phoneNumbers))
+    else:
+        return render_template("phoneNumber.html", title="Проверка телефона")

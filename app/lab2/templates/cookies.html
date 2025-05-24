@@ -1,21 +1,22 @@
 {% extends "base.html" %}
 
+
 {% block content %}
 <div class="container">
     <h1>
-        Заголовки
+        Cookies
     </h1>
     <table class="table">
-        {% for key, value in request.headers.items()%}
+        {% for cookie in request.cookies %}
         <tr>
             <td>
-                {{key}}
+                {{ cookie.key }}
             </td>
             <td>
-                {{value}}
+                {{ cookie.value }}
             </td>
         </tr>
-        {% endfor%}
+        {% endfor %}
     </table>
 </div>
 {% endblock content %}
