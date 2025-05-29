@@ -19,11 +19,14 @@ def headers():
 
 @app.route('/cookies')
 def cookies():
-    resp = make_response(render_template('cookies.html', title="Куки"))
-    if 'user' in request.cookies:
+    cookies_dict = request.cookies  # Получаем cookies из запроса
+    resp = make_response(render_template('cookies.html', title="Куки", cookies=cookies_dict))
+
+    if 'user' in cookies_dict:
         resp.delete_cookie('user')
     else:
         resp.set_cookie('user', 'admin')
+
     return resp
 
 @app.route('/forms', methods=['GET', 'POST'])
