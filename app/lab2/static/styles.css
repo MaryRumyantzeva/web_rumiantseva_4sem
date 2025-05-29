@@ -12,3 +12,7 @@ main {
 footer {
     flex-shrink: 0;
 }
+
+footer p {
+    color: white !important;
+}
