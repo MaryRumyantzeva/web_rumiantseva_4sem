@@ -6,6 +6,7 @@ from root_app.test_ import app as root_app
 
 app = DispatcherMiddleware(root_app, {
     '/lab1': lab1_app,
-    '/lab2': lab2_app
+    '/lab2': lab2_app,
+    '/lab3': lab3_app
 })
 application = app
