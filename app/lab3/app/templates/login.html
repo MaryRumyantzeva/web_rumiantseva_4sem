@@ -2,26 +2,26 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="container">
-        <h1>User authorization</h1>
+        <h1>Авторизация</h1>
         <form method = "POST">
             <div class="mb-3">
-              <label for="exampleInputLogin" class="form-label">Login</label>
+              <label for="exampleInputLogin" class="form-label">Логин</label>
               <input name="login" type="login" class="form-control" id="exampleInputLogin" aria-describedby="loginHelp" required>
-              <div id="loginHelp" class="form-text">We will never share your username with anyone else.</div>
+              <div id="loginHelp" class="form-text">я не сливаю пароли</div>
             </div>
             <div class="mb-3">
-              <label for="exampleInputPassword1" class="form-label">Password</label>
+              <label for="exampleInputPassword1" class="form-label">Пароль</label>
               <input name="password" type="password" class="form-control" id="exampleInputPassword1" required>
             </div>
 
             <div class="form-check">
               <input class="form-check-input" type="checkbox" value="" id="secretcheck">
               <label name="secretcheck" class="form-check-label" for="secretcheck">
-                Remember Me
+                Запомнить меня
               </label>
             </div>
             
-            <button type="submit" class="btn btn-primary">Send</button>
+            <button type="submit" class="btn btn-primary">Отправить</button>
           </form>
           
         
