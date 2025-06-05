@@ -20,7 +20,7 @@ users = [
     {
         'id': 1,
         'login': 'user',
-        'password': '123',
+        'password': 'qwerty',
     },
 ]
 
