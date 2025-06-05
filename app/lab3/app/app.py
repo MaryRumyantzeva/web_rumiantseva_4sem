@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, session, redirect, url_for, flash
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 
 app = Flask(__name__)
 
@@ -44,15 +44,23 @@ def index():
     return render_template('index.html')
 
 
+
 @app.route('/counter')
 def counter():
-    if 'count' in session:
-        session['count'] += 1
-    else:
-        session['count'] = 1
-        
-    return render_template('counter.html')
+    if 'visit_counts' not in session:
+        session['visit_counts'] = {}
 
+    if current_user.is_authenticated:
+        user_id = str(current_user.id)
+        session['visit_counts'][user_id] = session['visit_counts'].get(user_id, 0) + 1
+        visits = session['visit_counts'][user_id]
+    else:
+        session['visit_counts']['anonymous'] = session['visit_counts'].get('anonymous', 0) + 1
+        visits = session['visit_counts']['anonymous']
+
+    session.modified = True
+
+    return render_template('counter.html', title='Счётчик посещений', visits=visits)
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
@@ -81,4 +89,3 @@ def logout():
 @login_required
 def secret():
     return render_template('secret.html')
-    

@@ -1,29 +1,36 @@
-
 {% extends "base.html" %}
-{% block content %}
-    <div class="container">
-        <h1>Авторизация</h1>
-        <form method = "POST">
-            <div class="mb-3">
-              <label for="exampleInputLogin" class="form-label">Логин</label>
-              <input name="login" type="login" class="form-control" id="exampleInputLogin" aria-describedby="loginHelp" required>
-              <div id="loginHelp" class="form-text">я не сливаю пароли</div>
-            </div>
-            <div class="mb-3">
-              <label for="exampleInputPassword1" class="form-label">Пароль</label>
-              <input name="password" type="password" class="form-control" id="exampleInputPassword1" required>
-            </div>
 
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="" id="secretcheck">
-              <label name="secretcheck" class="form-check-label" for="secretcheck">
-                Запомнить меня
-              </label>
-            </div>
-            
-            <button type="submit" class="btn btn-primary">Отправить</button>
-          </form>
-          
-        
+{% block content %}
+<div class="container mt-3">
+
+  <h2>Login</h2>
+  <form method="post" action="{{ url_for('login') }}">
+    <div class="mb-3">
+      <label for="login" class="form-label">Login</label>
+      <input type="text" name="login" id="login" class="form-control" required>
     </div>
+
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input type="password" name="password" id="password" class="form-control" required>
+    </div>
+
+    <div class="form-check mb-3">
+      <input type="checkbox" name="remember_me" id="remember_me" class="form-check-input">
+      <label for="remember_me" class="form-check-label">Запомнить меня</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Log in</button>
+  </form>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="mt-3">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+</div>
 {% endblock %}
