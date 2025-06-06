@@ -3,10 +3,8 @@ from flask import get_flashed_messages
 from flask_login import current_user
 from werkzeug.http import parse_cookie
 
-# Импортируем приложение
 from lab3.app.app import app as flask_app
 
-# Тестовые пользователи
 TEST_USERS = [
     {
         'id': 1,
@@ -17,7 +15,6 @@ TEST_USERS = [
 
 @pytest.fixture
 def client():
-    # Настраиваем тестовое приложение
     flask_app.config.update({
         'TESTING': True,
         'WTF_CSRF_ENABLED': False,
