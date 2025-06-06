@@ -30,7 +30,6 @@ def get_cursor(*args, **kwargs):
     )
     return connection.cursor(*args, **kwargs)
 
-
 class User(UserMixin):
     def __init__(self, user_id, user_login):
         self.id = user_id
@@ -120,20 +119,20 @@ def login():
         query = 'SELECT id, login FROM users WHERE login=%s AND password=SHA2(%s, 256)'
         
         try:
-            with get_cursor(named_tuple=True) as cursor:
-                cursor.execute(query, (login, password))
-                user = cursor.fetchone()
-                
-                if user:
-                    login_user(User(user.id, user.login), remember=check)
-                    next_url = request.args.get('next') or url_for('index')
-                    flash('Вы успешно вошли!', 'success')
-                    return redirect(next_url)
-                else:
-                    flash('Неверные учетные данные.', 'danger')
+            cursor = get_cursor(named_tuple=True)
+            cursor.execute(query, (login, password))
+            user = cursor.fetchone()
+            cursor.close()
+            if user:
+                login_user(User(user.id, user.login), remember=check)
+                next_url = request.args.get('next') or url_for('index')
+                flash('Вы успешно вошли!', 'success')
+                return redirect(next_url)
+            else:
+                flash('Неверные учетные данные.', 'danger')
         except mysql.connector.errors.DatabaseError:
             flash('Произошла ошибка при входе.', 'danger')
-            
+
     return render_template('login.html')
 
 
@@ -146,10 +145,10 @@ def logout():
 @login_manager.user_loader
 def load_user(user_id):
     query = 'SELECT * FROM users WHERE id = %s'
-    with get_cursor(named_tuple=True) as cursor:
-        cursor.execute(query, (user_id,))
-        user = cursor.fetchone()
-        return User(user.id, user.login) if user else None
+    cursor = get_cursor(named_tuple=True)
+    cursor.execute(query, (user_id,))
+    user = cursor.fetchone()
+    return User(user.id, user.login) if user else None
 
 
 @app.route('/users/create', methods=['POST', 'GET'])
@@ -171,9 +170,9 @@ def create():
         '''
 
         try:
-            with get_cursor(named_tuple=True) as cursor:
-                cursor.execute(insert_query, (login, last_name, first_name, middle_name, password))
-                flash(f'Пользователь {login} успешно создан.', 'success')
+            cursor = get_cursor(named_tuple=True):
+            cursor.execute(insert_query, (login, last_name, first_name, middle_name, password))
+            flash(f'Пользователь {login} успешно создан.', 'success')
         except mysql.connector.errors.DatabaseError:
             flash('При создании пользователя произошла ошибка.', 'danger')
             return render_template('users/create.html')
@@ -194,9 +193,9 @@ def show_users():
 @app.route('/users/show/<int:user_id>') 
 def show_user(user_id):
     query = 'SELECT * FROM users WHERE users.id=%s'
-    with get_cursor(named_tuple=True) as cursor:
-        cursor.execute(query, (user_id,))
-        user = cursor.fetchone()
+    cursor = get_cursor(named_tuple=True)
+    cursor.execute(query, (user_id,))
+    user = cursor.fetchone()
     return render_template('users/show.html', user=user)
 
 
@@ -210,17 +209,17 @@ def edit(user_id):
         update_query = 'UPDATE users SET first_name = %s, last_name = %s, middle_name = %s WHERE id = %s'
 
         try:
-            with get_cursor(named_tuple=True) as cursor:
-                cursor.execute(update_query, (first_name, last_name, middle_name, user_id))
-                flash(f'Данные пользователя {first_name} успешно обновлены.', 'success')
+            cursor = get_cursor(named_tuple=True)
+            cursor.execute(update_query, (first_name, last_name, middle_name, user_id))
+            flash(f'Данные пользователя {first_name} успешно обновлены.', 'success')
         except mysql.connector.errors.DatabaseError:
             flash('При обновлении пользователя произошла ошибка.', 'danger')
             return render_template('users/edit.html')
 
     select_query = 'SELECT * FROM users WHERE id = %s'
-    with get_cursor(named_tuple=True) as cursor:
-        cursor.execute(select_query, (user_id,))
-        user = cursor.fetchone()
+    cursor = get_cursor(named_tuple=True)
+    cursor.execute(select_query, (user_id,))
+    user = cursor.fetchone()
 
     return render_template('users/edit.html', user=user)
 
@@ -231,9 +230,9 @@ def delete():
     try:
         user_id = request.args.get('user_id')
         query = 'DELETE FROM users WHERE id = %s'
-        with get_cursor(named_tuple=True) as cursor:
-            cursor.execute(query, (user_id,))
-            flash(f'Пользователь {user_id} успешно удален.', 'success')
+        cursor = get_cursor(named_tuple=True)
+        cursor.execute(query, (user_id,))
+        flash(f'Пользователь {user_id} успешно удален.', 'success')
     except mysql.connector.errors.DatabaseError:
         flash('При удалении пользователя произошла ошибка.', 'danger')
 
@@ -252,21 +251,21 @@ def change():
         check_password_query = 'SELECT * FROM `users` WHERE id = %s AND password = SHA2(%s, 256)'
         
         try:
-            with get_cursor(named_tuple=True) as cursor:
-                cursor.execute(check_password_query, (user_id, password))
-                user = cursor.fetchone()
-                
-                if not user:
-                    flash('Старый пароль не соответствует текущему', 'danger')
-                elif len(error) != 0:
-                    flash(error, 'danger')
-                elif n_password != n_password_2:
-                    flash('Пароли не совпадают', 'danger')
-                else:
-                    update_password_query = 'UPDATE `users` SET password = SHA2(%s, 256) WHERE id = %s'
-                    cursor.execute(update_password_query, (n_password, user_id))
-                    flash('Пароль успешно обновлен.', 'success')
-                    return redirect(url_for('index'))
+            cursor = get_cursor(named_tuple=True)
+            cursor.execute(check_password_query, (user_id, password))
+            user = cursor.fetchone()
+            
+            if not user:
+                flash('Старый пароль не соответствует текущему', 'danger')
+            elif len(error) != 0:
+                flash(error, 'danger')
+            elif n_password != n_password_2:
+                flash('Пароли не совпадают', 'danger')
+            else:
+                update_password_query = 'UPDATE `users` SET password = SHA2(%s, 256) WHERE id = %s'
+                cursor.execute(update_password_query, (n_password, user_id))
+                flash('Пароль успешно обновлен.', 'success')
+                return redirect(url_for('index'))
         except mysql.connector.errors.DatabaseError:
             flash('При обновлении пароля возникла ошибка.', 'danger')
             
