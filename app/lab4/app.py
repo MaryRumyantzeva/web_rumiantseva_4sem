@@ -1,17 +1,17 @@
 from typing import Dict
 from flask import Flask, render_template, request, session, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from mysql_db import MySQL
+
 import mysql.connector
 import re
+
+from lab4.config import MYSQL_DATABASE, MYSQL_HOST, MYSQL_PASSWORD, MYSQL_USER
 
 app = Flask(__name__)
 
 application = app
  
 app.config.from_pyfile('config.py')
-
-db = MySQL(app)
 
 login_manager = LoginManager()
 
@@ -20,6 +20,15 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Для доступа необходимо пройти аутентификацию'
 login_manager.login_message_category = 'warning'
+
+def get_cursor():
+    connection = mysql.connector.connect(
+        user=MYSQL_USER,
+        password=MYSQL_PASSWORD,
+        port=3306,
+        host=MYSQL_HOST,
+    )
+    return connection.cursor()
 
 class User(UserMixin):
     def __init__(self, user_id, user_login):
@@ -86,7 +95,7 @@ def validate(login: str, password: str, last_name: str, first_name: str) -> Dict
 @login_manager.user_loader
 def load_user(user_id):
     query = 'SELECT * FROM users WHERE users.id=%s'
-    cursor = db.connection().cursor(named_tuple=True)
+    cursor = get_cursor()
     cursor.execute(query, (user_id,))
     user = cursor.fetchone()
     cursor.close()
@@ -110,7 +119,7 @@ def login():
         query = 'SELECT id, login FROM users WHERE login=%s AND password=SHA2(%s, 256)'
         
         try:
-            with db.connection().cursor(named_tuple=True) as cursor:
+            with get_cursor(named_tuple=True) as cursor:
                 cursor.execute(query, (login, password))
                 user = cursor.fetchone()
                 
@@ -136,7 +145,7 @@ def logout():
 @login_manager.user_loader
 def load_user(user_id):
     query = 'SELECT * FROM users WHERE id = %s'
-    with db.connection().cursor(named_tuple=True) as cursor:
+    with get_cursor(named_tuple=True) as cursor:
         cursor.execute(query, (user_id,))
         user = cursor.fetchone()
         return User(user.id, user.login) if user else None
@@ -161,12 +170,10 @@ def create():
         '''
 
         try:
-            with db.connection().cursor(named_tuple=True) as cursor:
+            with get_cursor(named_tuple=True) as cursor:
                 cursor.execute(insert_query, (login, last_name, first_name, middle_name, password))
-                db.connection().commit()
                 flash(f'Пользователь {login} успешно создан.', 'success')
         except mysql.connector.errors.DatabaseError:
-            db.connection().rollback()
             flash('При создании пользователя произошла ошибка.', 'danger')
             return render_template('users/create.html')
 
@@ -176,7 +183,7 @@ def create():
 @login_required
 def show_users():
     query = 'SELECT * FROM users'
-    cursor = db.connection().cursor(named_tuple=True)
+    cursor = get_cursor(named_tuple=True)
     cursor.execute(query)
     users = cursor.fetchall()
     cursor.close()
@@ -186,7 +193,7 @@ def show_users():
 @app.route('/users/show/<int:user_id>') 
 def show_user(user_id):
     query = 'SELECT * FROM users WHERE users.id=%s'
-    with db.connection().cursor(named_tuple=True) as cursor:
+    with get_cursor(named_tuple=True) as cursor:
         cursor.execute(query, (user_id,))
         user = cursor.fetchone()
     return render_template('users/show.html', user=user)
@@ -202,17 +209,15 @@ def edit(user_id):
         update_query = 'UPDATE users SET first_name = %s, last_name = %s, middle_name = %s WHERE id = %s'
 
         try:
-            with db.connection().cursor(named_tuple=True) as cursor:
+            with get_cursor(named_tuple=True) as cursor:
                 cursor.execute(update_query, (first_name, last_name, middle_name, user_id))
-                db.connection().commit()
                 flash(f'Данные пользователя {first_name} успешно обновлены.', 'success')
         except mysql.connector.errors.DatabaseError:
-            db.connection().rollback()
             flash('При обновлении пользователя произошла ошибка.', 'danger')
             return render_template('users/edit.html')
 
     select_query = 'SELECT * FROM users WHERE id = %s'
-    with db.connection().cursor(named_tuple=True) as cursor:
+    with get_cursor(named_tuple=True) as cursor:
         cursor.execute(select_query, (user_id,))
         user = cursor.fetchone()
 
@@ -225,12 +230,10 @@ def delete():
     try:
         user_id = request.args.get('user_id')
         query = 'DELETE FROM users WHERE id = %s'
-        with db.connection().cursor(named_tuple=True) as cursor:
+        with get_cursor(named_tuple=True) as cursor:
             cursor.execute(query, (user_id,))
-            db.connection().commit()
             flash(f'Пользователь {user_id} успешно удален.', 'success')
     except mysql.connector.errors.DatabaseError:
-        db.connection().rollback()
         flash('При удалении пользователя произошла ошибка.', 'danger')
 
     return redirect(url_for('show_users'))
@@ -248,7 +251,7 @@ def change():
         check_password_query = 'SELECT * FROM `users` WHERE id = %s AND password = SHA2(%s, 256)'
         
         try:
-            with db.connection().cursor(named_tuple=True) as cursor:
+            with get_cursor(named_tuple=True) as cursor:
                 cursor.execute(check_password_query, (user_id, password))
                 user = cursor.fetchone()
                 
@@ -261,11 +264,9 @@ def change():
                 else:
                     update_password_query = 'UPDATE `users` SET password = SHA2(%s, 256) WHERE id = %s'
                     cursor.execute(update_password_query, (n_password, user_id))
-                    db.connection().commit()
                     flash('Пароль успешно обновлен.', 'success')
                     return redirect(url_for('index'))
         except mysql.connector.errors.DatabaseError:
-            db.connection().rollback()
             flash('При обновлении пароля возникла ошибка.', 'danger')
             
         return render_template('users/change.html')
