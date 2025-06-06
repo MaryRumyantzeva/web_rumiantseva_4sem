@@ -21,14 +21,15 @@ login_manager.login_view = 'login'
 login_manager.login_message = 'Для доступа необходимо пройти аутентификацию'
 login_manager.login_message_category = 'warning'
 
-def get_cursor(*args, **kwargs): 
-    return mysql.connector.connect(
+def get_cursor(*args, **kwargs):
+    conn = mysql.connector.connect(
+        host=MYSQL_HOST,
         user=MYSQL_USER,
         password=MYSQL_PASSWORD,
-        port=3306,
-        host=MYSQL_HOST,
-        database=MYSQL_DATABASE
-    ).cursor(*args, **kwargs)
+        database=MYSQL_DATABASE,
+        port=3306
+    )
+    return conn.cursor(*args, **kwargs)
 
 class User(UserMixin):
     def __init__(self, user_id, user_login):
