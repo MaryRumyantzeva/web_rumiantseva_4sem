@@ -170,7 +170,7 @@ def create():
         '''
 
         try:
-            cursor = get_cursor(named_tuple=True):
+            cursor = get_cursor(named_tuple=True)
             cursor.execute(insert_query, (login, last_name, first_name, middle_name, password))
             flash(f'Пользователь {login} успешно создан.', 'success')
         except mysql.connector.errors.DatabaseError:
