@@ -5,7 +5,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 import mysql.connector
 import re
 
-from lab4.config import MYSQL_DATABASE, MYSQL_HOST, MYSQL_PASSWORD, MYSQL_USER
+from config import MYSQL_DATABASE, MYSQL_HOST, MYSQL_PASSWORD, MYSQL_USER
 
 app = Flask(__name__)
 
@@ -27,6 +27,7 @@ def get_cursor(*args, **kwargs):
         password=MYSQL_PASSWORD,
         port=3306,
         host=MYSQL_HOST,
+        database=MYSQL_DATABASE
     ).cursor(*args, **kwargs)
 
 class User(UserMixin):
@@ -271,3 +272,14 @@ def change():
         return render_template('users/change.html')
 
     return render_template('users/change.html')
+
+@app.route('/test_db')
+def test_db():
+    try:
+        cursor = get_cursor()
+        cursor.execute("SELECT * FROM users")
+        users = cursor.fetchall()
+        cursor.close()
+        return str(users)  # Просто для теста
+    except Exception as e:
+        return f"Error: {str(e)}"

@@ -1,5 +1,5 @@
 SECRET_KEY = 'f038a541489b89f81762d12edfdd03835ceea10cfb3cdbdabfbfa0f48b0d4803'
 MYSQL_USER = 'rumiantseva'
-MYSQL_PASSWORD = 'Lwh-YSC-Rgx-7rz'
+MYSQL_PASSWORD = 'LwhYSCRgx7rz'
 MYSQL_HOST = 'rumiantseva.mysql.pythonanywhere-services.com'
 MYSQL_DATABASE = 'rumiantseva$rumiantsevadb'
