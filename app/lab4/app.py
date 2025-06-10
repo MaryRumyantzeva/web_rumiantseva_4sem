@@ -284,3 +284,9 @@ def test_db():
         return str(users)  # Просто для теста
     except Exception as e:
         return f"Error: {str(e)}"
+    
+@app.route('/test-auth')
+def test_auth():
+    cursor = get_cursor()
+    cursor.execute("SELECT id FROM users WHERE login='admin' AND password=SHA2('admin123', 256)")
+    return f"Result: {cursor.fetchone()}"

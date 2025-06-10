@@ -31,31 +31,28 @@ def test_index_page(client):
     response = client.get('/')
     assert response.status_code == 200
     html = response.get_data(as_text=True)
-    assert '<html' in html  # Общая проверка, что это HTML страница
+    assert '<html' in html  
 
 def test_counter_anonymous(client):
     """Тест счетчика для анонимного пользователя"""
     response = client.get('/counter')
     text = response.get_data(as_text=True)
     assert response.status_code == 200
-    assert 'counter' in text.lower()  # Проверяем ключевое слово
+    assert 'counter' in text.lower()  
 
 def test_counter_increments(client):
     """Тест увеличения счетчика"""
-    # Первый запрос
     client.get('/counter')
-    # Второй запрос
     response = client.get('/counter')
     text = response.get_data(as_text=True)
-    # Проверяем увеличение счетчика
-    assert '2' in text  # Ищем цифру 2 в ответе
+    assert '2' in text  
 
 def test_login_page(client):
     """Тест страницы входа"""
     response = client.get('/login')
     text = response.get_data(as_text=True)
     assert response.status_code == 200
-    assert 'form' in text.lower()  # Проверяем наличие формы
+    assert 'form' in text.lower()  
 
 def test_successful_login(client):
     """Тест успешного входа"""
@@ -78,11 +75,10 @@ def test_failed_login(client):
 def test_secret_page_protected(client):
     """Тест защиты секретной страницы"""
     response = client.get('/secret', follow_redirects=True)
-    assert b'login' in response.data  # Проверяем перенаправление на страницу входа
+    assert b'login' in response.data  
 
 def test_secret_page_accessible(client):
     """Тест доступа к секретной странице"""
-    # Логинимся
     client.post('/login', data={
         'login': 'user',
         'password': 'qwerty'
@@ -93,9 +89,7 @@ def test_secret_page_accessible(client):
 
 def test_redirect_after_login(client):
     """Тест перенаправления после входа"""
-    # Запрос к защищенной странице
     client.get('/secret')
-    # Логинимся
     response = client.post('/login', data={
         'login': 'user',
         'password': 'qwerty',
@@ -105,12 +99,10 @@ def test_redirect_after_login(client):
 
 def test_logout(client):
     """Тест выхода из системы"""
-    # Логинимся
     client.post('/login', data={
         'login': 'user',
         'password': 'qwerty'
     })
-    # Выходим
     response = client.get('/logout', follow_redirects=True)
     assert response.status_code == 200
     assert not current_user.is_authenticated
@@ -122,41 +114,33 @@ def test_remember_me(client):
         'password': 'qwerty',
         'remember_me': 'on'
     })
-    # Проверяем наличие remember_token в cookies
     cookies = response.headers.getlist('Set-Cookie')
     assert any('remember_token' in cookie for cookie in cookies)
 
 def test_counter_per_user(client):
     """Тест индивидуального счетчика"""
-    # Анонимный пользователь
     client.get('/counter')
     client.get('/counter')
     
-    # Логинимся
     client.post('/login', data={
         'login': 'user',
         'password': 'qwerty'
     })
-    # Авторизованный пользователь
     client.get('/counter')
     response = client.get('/counter')
     text = response.get_data(as_text=True)
-    # Проверяем, что счетчик работает
     assert '2' in text or '3' in text or '4' in text
 
 def test_navbar_links(client):
     """Тест навигационных ссылок"""
-    # Для анонимного пользователя
     response = client.get('/')
     text = response.get_data(as_text=True)
     assert 'login' in text.lower()
     
-    # Логинимся
     client.post('/login', data={
         'login': 'user',
         'password': 'qwerty'
     })
-    # Для авторизованного пользователя
     response = client.get('/')
     text = response.get_data(as_text=True)
     assert 'logout' in text.lower()
