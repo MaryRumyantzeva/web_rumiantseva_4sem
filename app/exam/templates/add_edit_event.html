@@ -7,6 +7,7 @@
     <div class="col-md-8">
         <h2>{% if event %}Редактировать событие{% else %}Добавить событие{% endif %}</h2>
         <form method="POST">
+            {{ form.hidden_tag() }}
             <div class="mb-3">
                 <label for="title" class="form-label">Название</label>
                 <input type="text" class="form-control" id="title" name="title" 

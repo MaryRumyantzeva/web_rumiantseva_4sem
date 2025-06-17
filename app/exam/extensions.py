@@ -6,10 +6,13 @@ from functools import wraps
 from flask import flash, redirect, url_for, current_app
 from flask_login import current_user
 
+
 # Инициализация основных расширений
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
+
+
 
 # Создаем класс для пустой пагинации
 class EmptyPagination:
@@ -107,6 +110,7 @@ def init_extensions(app):
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
+   
     
     # Оптимальные настройки для SQLAlchemy
     app.config.setdefault('SQLALCHEMY_TRACK_MODIFICATIONS', False)

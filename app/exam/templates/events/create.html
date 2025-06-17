@@ -31,7 +31,8 @@
                 {{ form.volunteers_needed(class="form-control") }}
             </div>
         </div>
-        
+
+           
         <div class="mb-3">
             {{ form.location.label(class="form-label") }}
             {{ form.location(class="form-control") }}
@@ -40,6 +41,9 @@
         <div class="mb-3">
             {{ form.image.label(class="form-label") }}
             {{ form.image(class="form-control") }}
+            {% if form.image.errors %}
+                <div class="error">{{ form.image.errors[0] }}</div>
+            {% endif %}
             <div class="form-text">Поддерживаются форматы: JPG, PNG</div>
         </div>
         
@@ -65,5 +69,14 @@
         }, false)
     })
 })()
+</script>
+
+<script>
+    // Инициализация datetimepicker (если используете)
+    $(function () {
+        $('#date').datetimepicker({
+            format: 'YYYY-MM-DD'
+        });
+    });
 </script>
 {% endblock %}

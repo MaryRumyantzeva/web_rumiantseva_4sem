@@ -54,7 +54,7 @@ class User(db.Model, UserMixin):
     )
     
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
     
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
@@ -64,6 +64,14 @@ class User(db.Model, UserMixin):
         if self.middle_name:
             return f"{self.last_name} {self.first_name} {self.middle_name}"
         return f"{self.last_name} {self.first_name}"
+    
+    def get_volunteer_status(self, event_id):
+        result = db.session.execute(
+            event_volunteer.select()
+            .where(event_volunteer.c.event_id == event_id)
+            .where(event_volunteer.c.volunteer_id == self.id)
+        ).fetchone()
+        return result.status if result else None
     
     def __repr__(self):
         return f'<User {self.username}>'
@@ -100,6 +108,11 @@ class Event(db.Model):
     def is_registration_open(self):
         return (self.volunteers_count < self.volunteers_needed and 
                 self.date > datetime.utcnow())
+    
+    def is_registered(self, user):
+        return self.volunteers.filter(
+            event_volunteer.c.volunteer_id == user.id
+        ).count() > 0
     
     def __repr__(self):
         return f'<Event {self.title}>'

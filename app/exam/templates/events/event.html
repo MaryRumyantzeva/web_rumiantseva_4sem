@@ -1,48 +1,37 @@
-from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, FileField
-from wtforms.validators import DataRequired, NumberRange
-from werkzeug.utils import secure_filename
+{% extends "base.html" %}
 
-class EventForm(FlaskForm):
-    title = StringField('Название', validators=[DataRequired()])
-    description = TextAreaField('Описание', validators=[DataRequired()])
-    date = DateTimeField('Дата и время', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
-    location = StringField('Место проведения', validators=[DataRequired()])
-    volunteers_needed = IntegerField('Требуется волонтеров', validators=[DataRequired(), NumberRange(min=1)])
-    image = FileField('Изображение')
+{% block content %}
+<div class="event-container">
+    <h2>{{ event.title }}</h2>
+    
+    <div class="event-details">
+        <p><strong>Дата:</strong> {{ event.date.strftime('%d.%m.%Y %H:%M') }}</p>
+        <p><strong>Место:</strong> {{ event.location }}</p>
+        <p><strong>Организатор:</strong> {{ event.organizer.full_name }}</p>
+        <p>{{ event.description }}</p>
+        
+        {% if event.image_filename %}
+        <img src="{{ url_for('static', filename='uploads/' + event.image_filename) }}" alt="{{ event.title }}">
+        {% endif %}
+    </div>
 
-@bp.route('/create', methods=['GET', 'POST'])
-@login_required
-@role_required('admin')
-def create():
-    form = EventForm()
-    
-    if form.validate_on_submit():
-        try:
-            # Обработка загрузки файла
-            filename = None
-            if form.image.data:
-                filename = secure_filename(form.image.data.filename)
-                # Сохраните файл в папку static/uploads/
-                form.image.data.save(f'static/uploads/{filename}')
-            
-            event = Event(
-                title=form.title.data,
-                description=form.description.data,
-                date=form.date.data,
-                location=form.location.data,
-                volunteers_needed=form.volunteers_needed.data,
-                image_filename=filename,
-                organizer_id=current_user.id
-            )
-            
-            db.session.add(event)
-            db.session.commit()
-            flash('Мероприятие успешно создано!', 'success')
-            return redirect(url_for('events.index'))
-            
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Ошибка при создании мероприятия: {str(e)}', 'danger')
-    
-    return render_template('events/create.html', form=form)
+    <!-- Форма для регистрации -->
+    {% if current_user.is_authenticated %}
+    <form method="POST" action="{{ url_for('events.register', event_id=event.id) }}">
+        {{ form.hidden_tag() }}
+        <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+    </form>
+    {% endif %}
+
+    <!-- Кнопки редактирования (только для организатора или админа) -->
+    {% if current_user == event.organizer or current_user.role.name == 'admin' %}
+    <div class="event-actions">
+        <a href="{{ url_for('events.edit_event', event_id=event.id) }}" class="btn btn-secondary">Редактировать</a>
+        <form method="POST" action="{{ url_for('events.delete_event', event_id=event.id) }}" style="display:inline;">
+            {{ form.hidden_tag() }}
+            <button type="submit" class="btn btn-danger">Удалить</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

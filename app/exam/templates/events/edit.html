@@ -3,8 +3,7 @@
 {% block content %}
 <div class="container mt-4">
   <h2>Редактирование мероприятия</h2>
-  <h2>Создание нового мероприятия</h2>
-  <form method="POST" enctype="multipart/form-data">
+  <form method="POST" action="{{ url_for('events.edit', event_id=event.id) }}">
     {{ form.hidden_tag() }}
     
     <div class="mb-3">
@@ -44,10 +43,7 @@
       </div>
     </div>
     
-    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-      <a href="{{ url_for('events.index') }}" class="btn btn-secondary me-md-2">Отмена</a>
-      <button type="submit" class="btn btn-primary">Создать</button>
-    </div>
+    <button type="submit" class="btn btn-primary">Сохранить</button>
   </form>
 </div>
 {% endblock %}
