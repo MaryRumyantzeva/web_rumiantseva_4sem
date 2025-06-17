@@ -1,50 +1,111 @@
 from datetime import datetime
-from app import db, login
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from .extensions import db
+from sqlalchemy import event
+from sqlalchemy.orm import validates
+
+# Таблица для связи многие-ко-многим между событиями и волонтёрами
+event_volunteer = db.Table(
+    'volunteer_registrations',
+    db.Column('id', db.Integer, primary_key=True),
+    db.Column('event_id', db.Integer, db.ForeignKey('events.id'), nullable=False),
+    db.Column('volunteer_id', db.Integer, db.ForeignKey('users.id'), nullable=False),
+    db.Column('registration_date', db.DateTime, default=datetime.utcnow, nullable=False),
+    db.Column('contact_info', db.String(128), nullable=False),
+    db.Column('status', db.String(20), default='pending', nullable=False,
+             server_default='pending'),
+    db.UniqueConstraint('event_id', 'volunteer_id', name='uq_event_volunteer'),
+    db.CheckConstraint("status IN ('pending', 'accepted', 'rejected')", name='chk_status')
+)
 
 class Role(db.Model):
     __tablename__ = 'roles'
+    
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True)
+    name = db.Column(db.String(25), unique=True, nullable=False)
     description = db.Column(db.Text)
-    users = db.relationship('User', backref='role', lazy='dynamic')
+    
+    users = db.relationship('User', back_populates='role', lazy=True)
 
-class User(UserMixin, db.Model):
+    def __repr__(self):
+        return f'<Role {self.name}>'
+
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
+    
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), index=True, unique=True)
-    password_hash = db.Column(db.String(128))
-    last_name = db.Column(db.String(64))
-    first_name = db.Column(db.String(64))
-    middle_name = db.Column(db.String(64))
-    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
-
+    username = db.Column(db.String(25), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    first_name = db.Column(db.String(25), nullable=False)
+    last_name = db.Column(db.String(25), nullable=False)
+    middle_name = db.Column(db.String(25))
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    role = db.relationship('Role', back_populates='users')
+    organized_events = db.relationship('Event', back_populates='organizer')
+    volunteer_events = db.relationship(
+        'Event',
+        secondary=event_volunteer,
+        back_populates='volunteers',
+        lazy='dynamic'
+    )
+    
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
-
+    
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+    
+    @property
+    def full_name(self):
+        if self.middle_name:
+            return f"{self.last_name} {self.first_name} {self.middle_name}"
+        return f"{self.last_name} {self.first_name}"
+    
+    def __repr__(self):
+        return f'<User {self.username}>'
 
 class Event(db.Model):
     __tablename__ = 'events'
+    
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(128), nullable=False)
     description = db.Column(db.Text, nullable=False)
-    date = db.Column(db.Date, nullable=False)
+    date = db.Column(db.DateTime, nullable=False)
     location = db.Column(db.String(128), nullable=False)
     volunteers_needed = db.Column(db.Integer, nullable=False)
-    image_filename = db.Column(db.String(128), nullable=False)
+    image_filename = db.Column(db.String(128), nullable=True)
     organizer_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    organizer = db.relationship('User', backref='organized_events')
-    volunteers = db.relationship('VolunteerRegistration', backref='event', lazy='dynamic')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    organizer = db.relationship('User', back_populates='organized_events')
+    volunteers = db.relationship(
+        'User',
+        secondary=event_volunteer,
+        back_populates='volunteer_events',
+        lazy='dynamic'
+    )
+    
+    @property
+    def volunteers_count(self):
+        return self.volunteers.filter(
+            event_volunteer.c.status == 'accepted'
+        ).count()
+    
+    @property
+    def is_registration_open(self):
+        return (self.volunteers_count < self.volunteers_needed and 
+                self.date > datetime.utcnow())
+    
+    def __repr__(self):
+        return f'<Event {self.title}>'
 
-class VolunteerRegistration(db.Model):
-    __tablename__ = 'volunteer_registrations'
-    id = db.Column(db.Integer, primary_key=True)
-    event_id = db.Column(db.Integer, db.ForeignKey('events.id', ondelete='CASCADE'), nullable=False)
-    volunteer_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    contact_info = db.Column(db.String(128), nullable=False)
-    registration_date = db.Column(db.DateTime, default=datetime.utcnow)
-    status = db.Column(db.String(32), default='pending')
-    volunteer = db.relationship('User', backref='registrations')
+# Валидация статуса при добавлении волонтера
+@event.listens_for(Event.volunteers, 'append')
+def validate_status(target, value, initiator):
+    if hasattr(value, 'status') and value.status not in ['pending', 'accepted', 'rejected']:
+        raise ValueError("Invalid status value")

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <!-- Flash-сообщения -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <h1 class="mb-4">Актуальные мероприятия</h1>
+
+  <!-- Список мероприятий -->
+  {% if events.items %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+      {% for event in events.items %}
+        <div class="col">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">{{ event.title }}</h5>
+              <p class="card-text text-muted">
+                <small>
+                  <i class="bi bi-calendar-event"></i> {{ event.date.strftime('%d.%m.%Y %H:%M') }}<br>
+                  <i class="bi bi-geo-alt"></i> {{ event.location }}
+                </small>
+              </p>
+              <p class="card-text">{{ event.description|truncate(150) }}</p>
+            </div>
+            <div class="card-footer bg-transparent">
+              <div class="d-flex justify-content-between">
+                <a href="{{ url_for('events.details', event_id=event.id) }}" class="btn btn-sm btn-outline-primary">
+                  Подробнее
+                </a>
+                {% if current_user.is_authenticated and current_user.role.name == 'admin' %}
+                  <a href="{{ url_for('events.edit', event_id=event.id) }}" class="btn btn-sm btn-outline-warning">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Пагинация -->
+    {% if events.pages > 1 %}
+      <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+          {% if events.has_prev %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('events.index', page=events.prev_num) }}">
+                &laquo; Назад
+              </a>
+            </li>
+          {% endif %}
+          
+          {% if events.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('events.index', page=events.next_num) }}">
+                Вперед &raquo;
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+
+  {% else %}
+    <div class="alert alert-info">
+      <i class="bi bi-info-circle-fill"></i> Нет доступных мероприятий.
+      {% if current_user.is_authenticated and current_user.role.name == 'admin' %}
+        <a href="{{ url_for('events.create') }}" class="alert-link">Создайте первое мероприятие</a>.
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <!-- Кнопка добавления -->
+  {% if current_user.is_authenticated and current_user.role.name == 'admin' %}
+    <div class="fixed-bottom mb-4 me-4" style="left: auto; right: 20px;">
+      <a href="{{ url_for('events.create') }}" class="btn btn-success btn-lg rounded-circle shadow">
+        <i class="bi bi-plus-lg"></i>
+      </a>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Скрипт для автоматического скрытия flash-сообщений -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const alerts = document.querySelectorAll('.alert-dismissible');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000);
+    });
+});
+</script>
+{% endblock %}

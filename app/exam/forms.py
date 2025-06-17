@@ -1,10 +1,11 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField, DateField, IntegerField, FileField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, DateField, IntegerField, FileField, BooleanField
 from wtforms.validators import DataRequired
 
 class LoginForm(FlaskForm):
-    username = StringField('Логин', validators=[DataRequired()])
+    username = StringField('Имя пользователя', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
+    remember = BooleanField('Запомнить меня')
     submit = SubmitField('Войти')
 
 class EventForm(FlaskForm):

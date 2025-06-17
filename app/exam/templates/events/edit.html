@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Редактирование мероприятия</h2>
+  <h2>Создание нового мероприятия</h2>
+  <form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    
+    <div class="mb-3">
+      {{ form.title.label(class="form-label") }}
+      {{ form.title(class="form-control") }}
+      {% if form.title.errors %}
+        <div class="invalid-feedback d-block">
+          {{ form.title.errors[0] }}
+        </div>
+      {% endif %}
+    </div>
+    
+    <div class="mb-3">
+      {{ form.description.label(class="form-label") }}
+      {{ form.description(class="form-control", rows=5) }}
+    </div>
+    
+    <div class="row mb-3">
+      <div class="col-md-6">
+        {{ form.date.label(class="form-label") }}
+        {{ form.date(class="form-control", type="datetime-local") }}
+      </div>
+      <div class="col-md-6">
+        {{ form.location.label(class="form-label") }}
+        {{ form.location(class="form-control") }}
+      </div>
+    </div>
+    
+    <div class="row mb-3">
+      <div class="col-md-6">
+        {{ form.volunteers_needed.label(class="form-label") }}
+        {{ form.volunteers_needed(class="form-control", type="number", min=1) }}
+      </div>
+      <div class="col-md-6">
+        {{ form.image.label(class="form-label") }}
+        {{ form.image(class="form-control") }}
+      </div>
+    </div>
+    
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+      <a href="{{ url_for('events.index') }}" class="btn btn-secondary me-md-2">Отмена</a>
+      <button type="submit" class="btn btn-primary">Создать</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

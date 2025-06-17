@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}{% if event %}Редактирование{% else %}Добавление{% endif %} события{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2>{% if event %}Редактировать событие{% else %}Добавить событие{% endif %}</h2>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="title" class="form-label">Название</label>
+                <input type="text" class="form-control" id="title" name="title" 
+                       value="{{ event.title if event }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Описание</label>
+                <textarea class="form-control" id="description" name="description" 
+                          rows="3" required>{{ event.description if event }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="date" class="form-label">Дата</label>
+                <input type="datetime-local" class="form-control" id="date" name="date" 
+                       value="{{ event.date if event }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                {% if event %}Сохранить{% else %}Добавить{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
