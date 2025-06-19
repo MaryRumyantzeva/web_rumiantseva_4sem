@@ -1,0 +1,12 @@
+{% extends "base.html" %}  <!-- Или "kp/base.html" если в подпапке -->
+
+{% block content %}
+  <h1>Курсач - Главная страница</h1>
+  <p>Текущий пользователь: 
+     {% if current_user.is_authenticated %}
+       {{ current_user.username }}
+     {% else %}
+       Гость
+     {% endif %}
+  </p>
+{% endblock %}

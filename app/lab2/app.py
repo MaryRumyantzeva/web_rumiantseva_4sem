@@ -39,7 +39,7 @@ def phoneNumber():
     if request.method == 'POST':
         phone = request.form["phone"]
 
-        phoneNumbers = re.findall("\d{1}", phone)
+        phoneNumbers = re.findall(r"\d{1}", phone) 
         if not phoneNumbers:
             phoneNumbers.append("")
 

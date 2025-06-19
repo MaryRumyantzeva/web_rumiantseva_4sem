@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ bike.title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <img src="{{ bike.image_url }}" class="img-fluid rounded" alt="Велосипед">
+    </div>
+    <div class="col-md-6">
+        <h2>{{ bike.title }}</h2>
+        <p><strong>Категория:</strong> {{ bike.category }}</p>
+        <p><strong>Цена:</strong> {{ bike.price }} ₽</p>
+        <p>{{ bike.description }}</p>
+
+        {% if current_user.is_authenticated %}
+            <p><strong>Продавец:</strong> {{ bike.owner.username }}</p>
+            <form action="{{ url_for('kp.like', bike_id=bike.id) }}" method="post">
+                <button type="submit" class="btn btn-outline-danger">
+                    ❤️ {{ bike.likes|length }}
+                </button>
+            </form>
+        {% else %}
+            <p><em>Войдите, чтобы лайкнуть или увидеть контактную информацию.</em></p>
+        {% endif %}
+    </div>
+</div>
+
+<hr>
+
+<h4>Комментарии</h4>
+
+{% if current_user.is_authenticated %}
+<form method="post">
+    <div class="mb-3">
+        <textarea name="comment" class="form-control" rows="3" placeholder="Оставьте комментарий..." required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Отправить</button>
+</form>
+{% else %}
+<p><em><a href="{{ url_for('kp.lo_

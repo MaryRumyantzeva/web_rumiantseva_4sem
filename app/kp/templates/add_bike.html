@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Добавить велосипед{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Добавить велосипед</h2>
+<form method="POST" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label for="title" class="form-label">Название</label>
+        <input type="text" class="form-control" name="title" id="title" required>
+    </div>
+    <div class="mb-3">
+        <label for="description" class="form-label">Описание</label>
+        <textarea class="form-control" name="description" id="description" rows="3"></textarea>
+    </div>
+    <div class="mb-3">
+        <label for="price" class="form-label">Цена</label>
+        <input type="number" step="0.01" class="form-control" name="price" id="price" required>
+    </div>
+    <div class="mb-3">
+        <label for="category" class="form-label">Категория</label>
+        <input type="text" class="form-control" name="category" id="category" placeholder="городской, горный и т.д.">
+    </div>
+    <div class="mb-3">
+        <label for="image_url" class="form-label">URL изображения</label>
+        <input type="url" class="form-control" name="image_url" id="image_url">
+    </div>
+    <button type="submit" class="btn btn-warning">Добавить</button>
+</form>
+{% endblock %}

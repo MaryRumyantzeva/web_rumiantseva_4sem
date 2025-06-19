@@ -1,3 +1,2 @@
-from .exam import create_app
+#from .app import app  # Экспортируем приложение
 
-app = create_app()

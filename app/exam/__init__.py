@@ -1,9 +1,10 @@
-from flask import Flask
+from flask import Flask, redirect, url_for
 from .config import Config
 from .extensions import db, login_manager, migrate
 
 def create_app():
-    app = Flask(__name__, template_folder='templates')
+    """Фабрика приложения"""
+    app = Flask(__name__)
     app.config.from_object(Config)
     
     # Инициализация расширений
@@ -15,12 +16,18 @@ def create_app():
     from .routes.auth import bp as auth_bp
     from .routes.events import bp as events_bp
     app.register_blueprint(auth_bp)
-    app.register_blueprint(events_bp)
+    app.register_blueprint(events_bp, url_prefix='/events')
+
+
+    @app.route('/')
+    def exam_home():
+        return redirect(url_for('events.index'))
     
-    # Инициализация CLI команд
+    # CLI команды
     from .cli import init_app
     init_app(app)
     
     return app
 
+# Создаем экземпляр приложения для импорта
 app = create_app()

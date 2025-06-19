@@ -8,8 +8,9 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import select, update
 import os
 from flask import abort
+from ..utils import role_required
 
-bp = Blueprint('events', __name__)
+bp = Blueprint('events', __name__, url_prefix='/events')
 
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
