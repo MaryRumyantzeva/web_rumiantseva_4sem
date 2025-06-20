@@ -11,12 +11,12 @@ migrate = Migrate()
 
 @login_manager.user_loader
 def load_user(user_id):
-    from .models import User  # Импортируем здесь, чтобы избежать циклических импортов
+    from .models import User  
     return User.query.get(int(user_id))
 
 @event.listens_for(Engine, "connect")
 def enable_sqlite_foreign_keys(dbapi_connection, connection_record):
-    if isinstance(dbapi_connection, sqlite3.Connection):  # только для sqlite
+    if isinstance(dbapi_connection, sqlite3.Connection): 
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()

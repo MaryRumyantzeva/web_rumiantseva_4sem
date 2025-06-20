@@ -8,9 +8,9 @@ function updateBackground(theme) {
   const body = document.body;
 
   if (theme === 'dark') {
-    body.style.backgroundImage = "url('/static/images/bgd.png')";
+    body.style.backgroundImage = "url('/static/images/bgd2.png')";
   } else {
-    body.style.backgroundImage = "url('/static/images/bg.png')";
+    body.style.backgroundImage = "url('/static/images/bg3.png')";
   }
 }
 

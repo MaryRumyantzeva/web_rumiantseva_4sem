@@ -12,11 +12,11 @@ main_app.config['SECRET_KEY'] = 'f038a541489b89f81762d12edfdd03835ceea10cfb3cdbd
 main_app.config['DEBUG'] = True
 
 # Импортируем приложения (теперь с абсолютными путями)
-from lab1.app.lab1.app import app as lab1_app
-from lab2.app.lab2.app import app as lab2_app
-from lab3.app.lab3.app import app as lab3_app
-from kp.app.kp.app import app as kp_app
-from exam.app.exam.app import app as exam_app
+from app.lab1.app import app as lab1_app
+from app.lab2.app import app as lab2_app
+from app.lab3.app import app as lab3_app
+from app.kp.app import app as kp_app
+from app.exam.app import app as exam_app
 
 # Настройка маршрутизации
 app = DispatcherMiddleware(main_app, {

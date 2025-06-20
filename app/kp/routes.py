@@ -19,7 +19,6 @@ bp = Blueprint('kp', __name__, template_folder='templates')
 @bp.route('/')
 def home():
     try:       
-        # Пробуем простейший шаблон
         return render_template('kp/index.html')
     except Exception as e:
         return f"Ошибка: {str(e)}", 500
@@ -29,7 +28,7 @@ def home():
 @login_required
 def admin_panel():
     if not current_user.is_admin:
-        abort(403)  # Запрет доступа
+        abort(403) 
     users = User.query.all()
     bikes = Bike.query.all()
     return render_template('admin_panel.html', users=users, bikes=bikes)
@@ -51,7 +50,7 @@ def bikes():
         query = query.filter(Bike.price <= float(max_price))
     
     bikes = query.all()
-    categories = db.session.query(Bike.category.distinct()).all()  # Уникальные категории
+    categories = db.session.query(Bike.category.distinct()).all()  
     return render_template('bikes.html', bikes=bikes, categories=categories)
 
 @bp.route("/add_bike", methods=["GET", "POST"])
@@ -82,7 +81,7 @@ def add_bike():
             owner_id=current_user.id
         )
         db.session.add(new_bike)
-        db.session.flush()  # чтобы получить new_bike.id до commit
+        db.session.flush()  
 
         # Папка для загрузок
         upload_folder = os.path.join(current_app.root_path, 'static/uploads')
@@ -186,10 +185,10 @@ def profile():
             flash('Аватар обновлён!', 'success')
             return redirect(url_for('kp.profile'))
 
-    # 💡 Добавляем велосипеды пользователя
+    # Добавляем велосипеды пользователя
     my_bikes = Bike.query.filter_by(owner_id=current_user.id).all()
 
-    # 💡 Добавляем велосипеды, на которые пользователь поставил лайк
+    #  Добавляем велосипеды, на которые пользователь поставил лайк
     liked_bike_ids = [like.bike_id for like in current_user.likes]
     liked_bikes = Bike.query.filter(Bike.id.in_(liked_bike_ids)).all()
 
