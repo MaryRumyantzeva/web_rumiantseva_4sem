@@ -1,41 +1,102 @@
 {% extends 'base.html' %}
-
 {% block title %}{{ bike.title }}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-6">
-        <img src="{{ bike.image_url }}" class="img-fluid rounded" alt="Велосипед">
-    </div>
-    <div class="col-md-6">
-        <h2>{{ bike.title }}</h2>
-        <p><strong>Категория:</strong> {{ bike.category }}</p>
-        <p><strong>Цена:</strong> {{ bike.price }} ₽</p>
-        <p>{{ bike.description }}</p>
+<div class="container mt-4">
+  <a href="{{ url_for('kp.bikes') }}" class="btn btn-secondary mb-3">
+    ← Назад к списку
+  </a>
 
-        {% if current_user.is_authenticated %}
-            <p><strong>Продавец:</strong> {{ bike.owner.username }}</p>
-            <form action="{{ url_for('kp.like', bike_id=bike.id) }}" method="post">
-                <button type="submit" class="btn btn-outline-danger">
-                    ❤️ {{ bike.likes|length }}
-                </button>
-            </form>
-        {% else %}
-            <p><em>Войдите, чтобы лайкнуть или увидеть контактную информацию.</em></p>
+  <div class="row">
+    <div class="col-md-6">
+      {% for img in images %}
+        <img src="{{ url_for('kp.uploaded_file', filename=img) }}" class="img-fluid mb-3 rounded shadow">
+      {% endfor %}
+    </div>
+
+    <div class="col-md-6">
+      <h2>{{ bike.title }}</h2>
+      <p><strong>Категория:</strong> {{ bike.category }}</p>
+      <p><strong>Цена:</strong> {{ bike.price }} ₽</p>
+      <p>{{ bike.description }}</p>
+
+      {% if current_user.is_authenticated %}
+  <p><strong>Продавец:</strong> {{ bike.owner.username }}</p>
+
+  <!-- ❤️ Лайк -->
+  <form method="POST" action="{{ url_for('kp.like', bike_id=bike.id) }}" class="d-inline">
+    <button type="submit" class="btn btn-outline-danger">
+      ❤️ {{ bike.likes|length }}
+    </button>
+  </form>
+
+  {% if current_user.id != bike.owner_id %}
+    <!-- 📌 Забронировать -->
+    <form method="POST" action="{{ url_for('kp.reserve', bike_id=bike.id) }}" class="d-inline ms-2">
+      <button type="submit" class="btn btn-success">
+        📌 Забронировать
+      </button>
+    </form>
+  {% endif %}
+
+  {% if current_user.id == bike.owner_id %}
+    <!-- ✏️ Редактировать -->
+    <a href="{{ url_for('kp.edit_bike', bike_id=bike.id) }}" class="btn btn-warning ms-2">
+      ✏️ Редактировать
+    </a>
+  {% endif %}
+
+
+        {% if current_user.id == bike.owner_id %}
+          <hr>
+          <h5>🔒 Пользователи, забронировавшие велосипед:</h5>
+          {% if bike.reservations %}
+            <ul>
+              {% for res in bike.reservations %}
+                <li>{{ res.user.username }} ({{ res.user.email }})</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p><em>Пока никто не бронировал.</em></p>
+          {% endif %}
         {% endif %}
+      {% else %}
+        <p><em>Войдите, чтобы взаимодействовать с объявлением.</em></p>
+      {% endif %}
     </div>
+  </div>
+
+  <hr>
+
+  <h4>💬 Комментарии</h4>
+  {% if current_user.is_authenticated %}
+    <form method="POST" action="{{ url_for('kp.bike_detail', bike_id=bike.id) }}" class="mb-4">
+      <textarea name="comment" class="form-control mb-2" placeholder="Ваш комментарий..." required></textarea>
+      <button type="submit" class="btn btn-primary">Отправить</button>
+    </form>
+  {% else %}
+    <p><a href="{{ url_for('kp.login') }}">Войдите</a>, чтобы оставить комментарий.</p>
+  {% endif %}
+
+  {% for comment in bike.comments %}
+    <div class="d-flex align-items-start mb-3">
+      <img src="{{ url_for('kp.uploaded_file', filename=comment.author.avatar_url) if comment.author.avatar_url else url_for('static', filename='img/default_avatar.png') }}"
+           class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
+      <div>
+        <strong>{{ comment.author.username }}</strong><br>
+        <span>{{ comment.text }}</span>
+
+        {% if current_user.is_authenticated and current_user.is_admin %}
+          <form method="POST"
+                action="{{ url_for('kp.delete_comment', comment_id=comment.id) }}"
+                style="display:inline;">
+            <button class="btn btn-sm btn-danger mt-1" onclick="return confirm('Удалить комментарий?')">
+              Удалить
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
 </div>
-
-<hr>
-
-<h4>Комментарии</h4>
-
-{% if current_user.is_authenticated %}
-<form method="post">
-    <div class="mb-3">
-        <textarea name="comment" class="form-control" rows="3" placeholder="Оставьте комментарий..." required></textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Отправить</button>
-</form>
-{% else %}
-<p><em><a href="{{ url_for('kp.lo_
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Редактировать: {{ bike.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>✏️ Редактировать велосипед</h2>
+
+  <form method="POST">
+    <div class="mb-3">
+      <label for="title" class="form-label">Название</label>
+      <input type="text" class="form-control" id="title" name="title" value="{{ bike.title }}" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="price" class="form-label">Цена</label>
+      <input type="number" class="form-control" id="price" name="price" value="{{ bike.price }}" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="description" class="form-label">Описание</label>
+      <textarea class="form-control" id="description" name="description" rows="4" required>{{ bike.description }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">💾 Сохранить изменения</button>
+    <a href="{{ url_for('kp.bike_detail', bike_id=bike.id) }}" class="btn btn-secondary ms-2">↩ Назад</a>
+  </form>
+</div>
+{% endblock %}

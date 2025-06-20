@@ -1,74 +1,136 @@
 {% extends "base.html" %}
+{% block title %}Каталог велосипедов{% endblock %}
+
 {% block content %}
-  <h1>Список велосипедов</h1>
+  <h1 class="text-center mb-4">Каталог велосипедов</h1>
+
   {% if current_user.is_authenticated %}
-    <a href="{{ url_for('kp.add_bike') }}">Добавить велосипед</a>
-    <a href="{{ url_for('kp.bike_detail', bike_id=bike.id) }}" class="btn btn-outline-primary btn-sm">Подробнее</a>
+    <div class="text-end mb-3">
+      <a href="{{ url_for('kp.add_bike') }}" class="btn btn-success">+ Добавить велосипед</a>
+    </div>
   {% endif %}
-  <div class="bikes">
+
+  <!-- Поиск -->
+  <form action="{{ url_for('kp.search') }}" method="GET" class="input-group mb-3">
+    <input type="text" name="q" class="form-control" placeholder="Поиск...">
+    <button type="submit" class="btn btn-outline-primary">Найти</button>
+  </form>
+
+  <!-- Фильтр -->
+  <form method="get" action="{{ url_for('kp.bikes') }}" class="row mb-4">
+  <div class="col-md-4">
+    <select name="category" class="form-select" onchange="this.form.submit()">
+      <option value="">Все категории</option>
+      <option value="горный" {% if request.args.get('category') == 'горный' %}selected{% endif %}>горный (самый топ)</option>
+      <option value="двухподвес" {% if request.args.get('category') == 'двухподвес' %}selected{% endif %}>двухподвес (имба)</option>
+      <option value="шоссейный" {% if request.args.get('category') == 'шоссейный' %}selected{% endif %}>шоссейный (ужас просто)</option>
+      <option value="городской" {% if request.args.get('category') == 'городской' %}selected{% endif %}>городской (нормис)</option>
+      <option value="детский" {% if request.args.get('category') == 'детский' %}selected{% endif %}>детский (лайк)</option>
+      <option value="гревел" {% if request.args.get('category') == 'гревел' %}selected{% endif %}>гревел (на странном)</option>
+      <option value="дх" {% if request.args.get('category') == 'дх' %}selected{% endif %}>дх (для крутых)</option>
+      <option value="bmx" {% if request.args.get('category') == 'bmx' %}selected{% endif %}>bmx (а ты необычный)</option>
+      <option value="fix" {% if request.args.get('category') == 'fix' %}selected{% endif %}>fix (ты адекватный?)</option>
+    </select>
+  </div>
+
+
+    <div class="col-md-3">
+      <input type="number" name="min_price" class="form-control" placeholder="Мин цена">
+    </div>
+    <div class="col-md-3">
+      <input type="number" name="max_price" class="form-control" placeholder="Макс цена">
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-outline-secondary w-100">Фильтр</button>
+    </div>
+  </form>
+
+  <!-- Карточки -->
+  <div class="row">
     {% for bike in bikes %}
-      <div class="bike-card">
-        <h3>{{ bike.title }}</h3>
-        <p>{{ bike.description }}</p>
-        <p>Цена: {{ bike.price }} руб.</p>
-        {% if current_user.id == bike.owner_id %}
-          <a href="{{ url_for('delete_bike', id=bike.id) }}">Удалить</a>
-        {% endif %}
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm bg-body-tertiary">
+          {% if bike.images and bike.images|length > 0 %}
+            <img src="{{ url_for('static', filename='uploads/' + bike.images[0].filename) }}" class="card-img-top" alt="Фото велосипеда">
+          {% else %}
+            <img src="{{ url_for('static', filename='uploads/default.jpg') }}" class="card-img-top" alt="Фото велосипеда">
+          {% endif %}
+
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">{{ bike.title }}</h5>
+            <p class="card-text">{{ bike.description[:100] }}...</p>
+            <p><strong>Цена:</strong> {{ bike.price }} ₽</p>
+
+            {% if current_user.is_authenticated %}
+              <p><strong>Продавец:</strong> {{ bike.owner.username }}</p>
+              <a href="{{ url_for('kp.bike_detail', bike_id=bike.id) }}" class="btn btn-primary btn-sm mt-auto">Подробнее</a>
+
+              <form action="{{ url_for('kp.like', bike_id=bike.id) }}" method="POST" class="mt-2">
+                <button type="submit" class="btn btn-outline-danger btn-sm">❤️ {{ bike.likes|length }}</button>
+              </form>
+
+              {% if current_user.id == bike.owner_id %}
+                <a href="{{ url_for('kp.delete_bike', bike_id=bike.id) }}" class="btn btn-outline-danger btn-sm mt-2">Удалить</a>
+              {% endif %}
+            {% else %}
+              <p class="text-muted"><em>Войдите, чтобы увидеть больше</em></p>
+              <a href="{{ url_for('kp.login') }}" class="btn btn-warning btn-sm">Войти</a>
+            {% endif %}
+          </div>
+
+          <!-- Комментарии -->
+          <div class="card-footer bg-transparent border-top">
+            <h6>Комментарии:</h6>
+            {% for comment in bike.comments %}
+              <div class="mb-1">
+                <strong>{{ comment.author.username }}:</strong> {{ comment.text }}
+              </div>
+            {% endfor %}
+            {% if current_user.is_authenticated %}
+              <form method="POST" action="{{ url_for('kp.bike_detail', bike_id=bike.id) }}">
+                <textarea name="comment" required class="form-control form-control-sm mt-2 mb-2" placeholder="Оставить комментарий"></textarea>
+                <button type="submit" class="btn btn-success btn-sm">Отправить</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
       </div>
     {% endfor %}
   </div>
 
-  <form action="{{ url_for('search') }}" method="GET">
-  <input type="text" name="q" placeholder="Поиск...">
-  <button type="submit">Найти</button>
-  </form>
-
-<form action="{{ url_for('bikes') }}" method="GET">
-  <select name="category">
-    <option value="">Все категории</option>
-    {% for cat in categories %}
-      <option value="{{ cat[0] }}">{{ cat[0] }}</option>
-    {% endfor %}
-  </select>
-  <input type="number" name="min_price" placeholder="Мин цена">
-  <input type="number" name="max_price" placeholder="Макс цена">
-  <button type="submit">Фильтр</button>
-</form>
-
-<div class="likes">
-  <form action="{{ url_for('like', bike_id=bike.id) }}" method="POST">
-    <button type="submit">❤️ {{ bike.likes|length }}</button>
-  </form>
-</div>
-
-
-<div class="card">
-    <img src="{{ bike.image_url }}" class="card-img-top" alt="Фото">
-    <div class="card-body">
-        <h5 class="card-title">{{ bike.title }}</h5>
-        <p class="card-text">{{ bike.description[:100] }}...</p>
-        <p><strong>Цена:</strong> {{ bike.price }} ₽</p>
-        
-        {% if current_user.is_authenticated %}
-            <p><strong>Продавец:</strong> {{ bike.owner.username }}</p>
-            <a href="{{ url_for('kp.bike_detail', bike_id=bike.id) }}" class="btn btn-outline-primary btn-sm">Подробнее</a>
+  <!-- Пагинация (если есть) -->
+  {% if pagination %}
+    <nav class="mt-4">
+      <ul class="pagination justify-content-center">
+        {% if pagination.has_prev %}
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('kp.bikes', page=pagination.prev_num) }}">&laquo;</a>
+          </li>
         {% else %}
-            <p><em>Зарегистрируйтесь, чтобы увидеть контактную информацию</em></p>
-            <a href="{{ url_for('kp.login') }}" class="btn btn-warning btn-sm">Войти</a>
+          <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
         {% endif %}
-    </div>
-</div>
 
-<div class="comments">
-  <h3>Комментарии</h3>
-  {% if current_user.is_authenticated %}
-    <form method="POST">
-      <textarea name="comment" required></textarea>
-      <button type="submit">Отправить</button>
-    </form>
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+          {% if page_num %}
+            {% if page_num == pagination.page %}
+              <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="{{ url_for('kp.bikes', page=page_num) }}">{{ page_num }}</a></li>
+            {% endif %}
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+          {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('kp.bikes', page=pagination.next_num) }}">&raquo;</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+        {% endif %}
+      </ul>
+    </nav>
   {% endif %}
-  {% for comment in bike.comments %}
-    <p><strong>{{ comment.author.username }}:</strong> {{ comment.text }}</p>
-  {% endfor %}
-</div>
+
 {% endblock %}

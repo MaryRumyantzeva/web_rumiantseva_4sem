@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Админ-панель{% endblock %}
+
+{% block content %}
+<h1>Админ-панель</h1>
+
+<h2>Пользователи</h2>
+<table class="table">
+    <thead>
+        <tr><th>ID</th><th>Имя</th><th>Email</th><th>Админ</th><th>Действие</th></tr>
+    </thead>
+    <tbody>
+    {% for user in users %}
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ 'Да' if user.is_admin else 'Нет' }}</td>
+            <td>
+                {% if not user.is_admin %}
+                    <a href="{{ url_for('kp.delete_user', user_id=user.id) }}" class="btn btn-danger btn-sm">Удалить</a>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h2>Все велосипеды</h2>
+<table class="table">
+    <thead>
+        <tr><th>ID</th><th>Название</th><th>Владелец</th><th>Категория</th><th>Цена</th><th>Действие</th></tr>
+    </thead>
+    <tbody>
+    {% for bike in bikes %}
+        <tr>
+            <td>{{ bike.id }}</td>
+            <td>{{ bike.title }}</td>
+            <td>{{ bike.owner.username }}</td>
+            <td>{{ bike.category }}</td>
+            <td>{{ bike.price }}</td>
+            <td>
+                <a href="{{ url_for('kp.delete_bike_admin', bike_id=bike.id) }}" class="btn btn-danger btn-sm">Удалить</a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

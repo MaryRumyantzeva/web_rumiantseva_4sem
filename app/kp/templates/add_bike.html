@@ -19,12 +19,27 @@
     </div>
     <div class="mb-3">
         <label for="category" class="form-label">Категория</label>
-        <input type="text" class="form-control" name="category" id="category" placeholder="городской, горный и т.д.">
+        <div class="mb-3">
+  <label for="category" class="form-label">Категория</label>
+  <select class="form-select" name="category" id="category" required>
+    <option value="горный">горный (самый топ)</option>
+    <option value="двухподвес">двухподвес (имба)</option>
+    <option value="шоссейный">шоссейный (ужас просто)</option>
+    <option value="городской">городской (нормис)</option>
+    <option value="детский">детский (лайк)</option>
+    <option value="гревел">гревел (на странном)</option>
+    <option value="дх">дх (для крутых)</option>
+    <option value="bmx">bmx (а ты необычный)</option>
+    <option value="fix">fix (ты адекватный?)</option>
+  </select>
+</div>
+
     </div>
     <div class="mb-3">
-        <label for="image_url" class="form-label">URL изображения</label>
-        <input type="url" class="form-control" name="image_url" id="image_url">
-    </div>
-    <button type="submit" class="btn btn-warning">Добавить</button>
+    <label class="form-label">Фото (до 5)</label>
+    <input type="file" name="images" class="form-control" accept="image/*" multiple>
+  </div>
+  <button type="submit" class="btn btn-success">Добавить велосипед</button>
+    
 </form>
 {% endblock %}

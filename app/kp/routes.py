@@ -3,10 +3,15 @@ from werkzeug.utils import secure_filename
 from flask import Flask
 from .config import Config
 from .extensions import db, login_manager, migrate
-from .models import Bike, User, Like, Comment
+from .models import Bike, User, Like, Comment, BikeImage, Reservation
 from flask_login import login_required, current_user, login_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+import json
+import uuid
+from uuid import uuid4
+from app.utils import allowed_file  # если функция лежит в utils.py
+from flask import abort
 
 
 bp = Blueprint('kp', __name__, template_folder='templates')
@@ -18,6 +23,16 @@ def home():
         return render_template('kp/index.html')
     except Exception as e:
         return f"Ошибка: {str(e)}", 500
+    
+
+@bp.route('/admin')
+@login_required
+def admin_panel():
+    if not current_user.is_admin:
+        abort(403)  # Запрет доступа
+    users = User.query.all()
+    bikes = Bike.query.all()
+    return render_template('admin_panel.html', users=users, bikes=bikes)
     
 
 @bp.route('/bikes')
@@ -38,6 +53,62 @@ def bikes():
     bikes = query.all()
     categories = db.session.query(Bike.category.distinct()).all()  # Уникальные категории
     return render_template('bikes.html', bikes=bikes, categories=categories)
+
+@bp.route("/add_bike", methods=["GET", "POST"])
+@login_required
+def add_bike():
+    if request.method == "POST":
+        title = request.form.get("title")
+        description = request.form.get("description")
+        price = request.form.get("price")
+        category = request.form.get("category")
+
+        if not title or not description or not price or not category:
+            flash("Пожалуйста, заполните все поля", "danger")
+            return redirect(url_for("kp.add_bike"))
+
+        try:
+            price = int(price)
+        except ValueError:
+            flash("Цена должна быть числом", "danger")
+            return redirect(url_for("kp.add_bike"))
+
+        # Создаем велосипед
+        new_bike = Bike(
+            title=title,
+            description=description,
+            price=price,
+            category=category,
+            owner_id=current_user.id
+        )
+        db.session.add(new_bike)
+        db.session.flush()  # чтобы получить new_bike.id до commit
+
+        # Папка для загрузок
+        upload_folder = os.path.join(current_app.root_path, 'static/uploads')
+        os.makedirs(upload_folder, exist_ok=True)
+
+        # Обработка изображений
+        if 'images' in request.files:
+            files = request.files.getlist('images')
+            print("Получено файлов:", len(files))
+            for file in files:
+                if file.filename:
+                    print("Файл:", file.filename)
+                    filename = f"{current_user.id}_{uuid.uuid4().hex}_{secure_filename(file.filename)}"
+                    print("Сохраняем:", filename)
+                    filepath = os.path.join(upload_folder, filename)
+                    file.save(filepath)
+
+                    # Сохраняем в БД
+                    image = BikeImage(bike_id=new_bike.id, filename=filename)
+                    db.session.add(image)
+
+        db.session.commit()
+        flash("Велосипед добавлен!", "success")
+        return redirect(url_for("kp.bikes"))
+
+    return render_template("add_bike.html")
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -96,43 +167,26 @@ def logout():
     return redirect(url_for('kp.home'))
 
 
-@bp.route('/add_bike', methods=['GET', 'POST'])
-@login_required
-def add_bike():
-    upload_folder = current_app.config['UPLOAD_FOLDER']
-    if request.method == 'POST':
-        title = request.form['title']
-        description = request.form['description']
-        price = float(request.form['price'])
-        category = request.form['category']
-        image_url = request.form['image_url']
-
-        new_bike = Bike(
-            title=title,
-            description=description,
-            price=price,
-            category=category,
-            image_url=image_url,
-            owner_id=current_user.id
-        )
-        db.session.add(new_bike)
-        db.session.commit()
-        flash('Велосипед успешно добавлен!', 'success')
-        return redirect(url_for('kp.bikes'))
-
-    return render_template('add_bike.html')
-
-
-
 @bp.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
 
 
-@bp.route('/profile')
+@bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    return render_template('kp/profile.html')
+    if request.method == 'POST':
+        file = request.files.get('avatar')
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+            file.save(path)
+            current_user.avatar_url = filename
+            db.session.commit()
+            flash('Аватар обновлён!', 'success')
+            return redirect(url_for('kp.profile'))
+
+    return render_template('profile.html')
 
     
 @bp.route('/like/<int:bike_id>', methods=['POST'])
@@ -149,17 +203,133 @@ def like(bike_id):
     db.session.commit()
     return redirect(url_for('kp.bike_detail', bike_id=bike.id))
 
+
 @bp.route('/bike/<int:bike_id>', methods=['GET', 'POST'])
 def bike_detail(bike_id):
     bike = Bike.query.get_or_404(bike_id)
 
+    try:
+        images = json.loads(bike.image_filenames) if bike.image_filenames else []
+    except Exception as e:
+        images = []
+        print(f"[Ошибка image_filenames]: {e}")
+
     if request.method == 'POST' and current_user.is_authenticated:
-        text = request.form['comment']
+        text = request.form.get('comment')
         if text:
             comment = Comment(text=text, user_id=current_user.id, bike_id=bike.id)
             db.session.add(comment)
             db.session.commit()
             flash('Комментарий добавлен!', 'success')
-            return redirect(url_for('kp.bike_detail', bike_id=bike.id))
+        return redirect(url_for('kp.bike_detail', bike_id=bike.id))
 
-    return render_template('bike_detail.html', bike=bike)
+    return render_template('bike_detail.html', bike=bike, images=images)
+
+@bp.route('/reserve/<int:bike_id>', methods=['POST'])
+@login_required
+def reserve(bike_id):
+    bike = Bike.query.get_or_404(bike_id)
+    if current_user.id == bike.owner_id:
+        flash("Нельзя бронировать свой велосипед.", "warning")
+        return redirect(url_for('kp.bike_detail', bike_id=bike.id))
+
+    existing = Reservation.query.filter_by(user_id=current_user.id, bike_id=bike.id).first()
+    if existing:
+        flash("Вы уже забронировали этот велосипед.", "info")
+    else:
+        new_res = Reservation(user_id=current_user.id, bike_id=bike.id)
+        db.session.add(new_res)
+        db.session.commit()
+        flash("Велосипед забронирован!", "success")
+
+    return redirect(url_for('kp.bike_detail', bike_id=bike.id))
+
+
+@bp.route('/bike/<int:bike_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_bike(bike_id):
+    bike = Bike.query.get_or_404(bike_id)
+
+    if current_user.id != bike.owner_id and not current_user.is_admin:
+        abort(403)
+
+    if request.method == 'POST':
+        bike.title = request.form['title']
+        bike.price = request.form['price']
+        bike.description = request.form['description']
+        db.session.commit()
+        flash('Велосипед успешно обновлён!')
+        return redirect(url_for('kp.bike_detail', bike_id=bike.id))
+
+    return render_template('edit_bike.html', bike=bike)
+
+
+
+
+@bp.route('/delete/<int:bike_id>')
+@login_required
+def delete_bike(bike_id):
+    bike = Bike.query.get_or_404(bike_id)
+    Like.query.filter_by(bike_id=bike.id).delete()
+    db.session.delete(bike)
+    db.session.commit()
+    flash('Велосипед успешно удалён', 'success')
+    return redirect(url_for('kp.home'))
+
+
+@bp.route('/search')
+def search():
+    query = request.args.get('q', '')
+    if query:
+        bikes = Bike.query.filter(
+            (Bike.title.ilike(f'%{query}%')) | (Bike.description.ilike(f'%{query}%'))
+        ).all()
+    else:
+        bikes = []
+
+    categories = db.session.query(Bike.category.distinct()).all()
+    return render_template('bikes.html', bikes=bikes, categories=categories)
+
+
+@bp.route('/admin/delete_user/<int:user_id>')
+@login_required
+def delete_user(user_id):
+    if not current_user.is_admin:
+        abort(403)
+
+    user = User.query.get_or_404(user_id)
+
+    if user.is_admin:
+        flash('Нельзя удалить администратора.', 'warning')
+        return redirect(url_for('kp.admin_panel'))
+
+    db.session.delete(user)
+    db.session.commit()
+    flash('Пользователь удалён.', 'success')
+    return redirect(url_for('kp.admin_panel'))
+
+
+@bp.route('/admin/delete_bike/<int:bike_id>')
+@login_required
+def delete_bike_admin(bike_id):
+    if not current_user.is_admin:
+        abort(403)
+
+    bike = Bike.query.get_or_404(bike_id)
+
+    db.session.delete(bike)
+    db.session.commit()
+    flash('Велосипед удалён.', 'success')
+    return redirect(url_for('kp.admin_panel'))
+
+@bp.route('/admin/delete_comment/<int:comment_id>', methods=['POST'])
+@login_required
+def delete_comment(comment_id):
+    if not current_user.is_admin:
+        abort(403)
+
+    comment = Comment.query.get_or_404(comment_id)
+    db.session.delete(comment)
+    db.session.commit()
+    flash("Комментарий удалён.", "info")
+    return redirect(url_for('kp.bike_detail', bike_id=comment.bike_id))

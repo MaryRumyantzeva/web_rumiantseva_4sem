@@ -1,107 +1,153 @@
-<!-- Обновлённый base.html -->
-<!DOCTYPE html>
-<html lang="ru">
+<!doctype html>
+<html lang="ru" data-bs-theme="dark" class="h-100">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Велосипеды{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <style>
-        html, body {
-            height: 100%;
-        }
-        body {
-            display: flex;
-            flex-direction: column;
-        }
-        .content {
-            flex: 1 0 auto;
-        }
-        .footer {
-            background-color: #fff3cd;
-            padding: 1rem 0;
-            flex-shrink: 0;
-            text-align: center;
-            border-top: 1px solid #f1c40f;
-        }
-        .bike-card {
-            transition: transform 0.3s;
-            margin-bottom: 20px;
-        }
-        .bike-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-    </style>
-    {% block extra_css %}{% endblock %}
+  <meta charset="UTF-8">
+  <title>{% block title %}Каталог велосипедов{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Bootstrap CSS и Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  
+  <style>
+    html {
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+    body, .navbar, .footer {
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+    .nav-link.active {
+      font-weight: bold;
+      color: #0d6efd !important;
+    }
+  </style>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('kp.home') }}">
-                <i class="bi bi-bicycle"></i> Курсач-BikeMarket
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('kp.bikes') }}">Каталог</a>
-                    </li>
-                    {% if current_user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('kp.add_bike') }}">Добавить велосипед</a>
-                    </li>
-                    {% endif %}
-                </ul>
-                <ul class="navbar-nav">
-                    {% if current_user.is_authenticated %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i> {{ current_user.username }}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ url_for('kp.profile') }}">Мой профиль</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('kp.logout') }}">Выйти</a></li>
-                        </ul>
-                    </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('kp.login') }}">Войти</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('kp.register') }}">Регистрация</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
 
-    <main class="container content">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+<body class="d-flex flex-column h-100">
 
-        {% block content %}{% endblock %}
-    </main>
-
-    <footer class="footer mt-auto py-3" style="background-color: #fff3cd; position: fixed; bottom: 0; width: 100%;">
-    <div class="container text-center">
-        <span class="text-dark">© 2025 Курсач-BikeMarket — Покупай, продавай, крути! (Румянцева 231-329)</span>
+<header class="bg-dark text-light py-2">
+  <div class="container d-flex justify-content-between">
+    <div>
+      <i class="bi bi-bicycle"></i> Курсач-BikeMarket
     </div>
-    </footer>
+    <div>
+      {% if current_user.is_authenticated %}
+        Привет, {{ current_user.username }} |
+        <a href="{{ url_for('kp.logout') }}" class="link-light text-decoration-none">Выход</a>
+      {% else %}
+        <a href="{{ url_for('kp.login') }}" class="link-light text-decoration-none">Войти</a>
+      {% endif %}
+    </div>
+  </div>
+</header>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    {% block extra_js %}{% endblock %}
+<nav id="main-navbar" class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+  <div class="container">
+    <a class="navbar-brand" href="{{ url_for('kp.home') }}">
+      <i class="bi bi-house-door-fill"></i> Главная
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint == 'kp.bikes' %}active{% endif %}" href="{{ url_for('kp.bikes') }}">Каталог</a>
+        </li>
+        {% if current_user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint == 'kp.add_bike' %}active{% endif %}" href="{{ url_for('kp.add_bike') }}">Добавить велосипед</a>
+        </li>
+        {% if current_user.is_admin %}
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint == 'kp.admin_panel' %}active{% endif %}" href="{{ url_for('kp.admin_panel') }}">Админ-панель</a>
+        </li>
+        {% endif %}
+        {% endif %}
+      </ul>
+
+      <ul class="navbar-nav">
+        {% if current_user.is_authenticated %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i> {{ current_user.username }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{{ url_for('kp.profile') }}">Мой профиль</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('kp.logout') }}">Выйти</a></li>
+          </ul>
+        </li>
+        {% else %}
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('kp.login') }}">Войти</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('kp.register') }}">Регистрация</a></li>
+        {% endif %}
+        <li class="nav-item">
+          <button id="toggle-theme" class="btn btn-outline-secondary ms-2">Сменить тему</button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="container pb-5, flex-shrink-0">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<footer id="main-footer" class="footer mt-auto py-3 bg-dark text-light border-top">
+    <div class="container text-center">
+      <span>© 2025 Курсач-BikeMarket — Покупай, продавай, крути! (Румянцева 231-329)</span>
+    </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Тема: переключение -->
+<script>
+  const themeToggle = document.getElementById('toggle-theme');
+  const htmlElement = document.documentElement;
+  const navbar = document.getElementById('main-navbar');
+  const footer = document.getElementById('main-footer');
+
+  function applyTheme(theme) {
+    htmlElement.setAttribute('data-bs-theme', theme);
+    localStorage.setItem('theme', theme);
+
+    if (theme === 'dark') {
+      navbar.classList.remove('navbar-light', 'bg-light');
+      navbar.classList.add('navbar-dark', 'bg-dark');
+      footer.classList.remove('bg-light', 'text-dark');
+      footer.classList.add('bg-dark', 'text-light');
+    } else {
+      navbar.classList.remove('navbar-dark', 'bg-dark');
+      navbar.classList.add('navbar-light', 'bg-light');
+      footer.classList.remove('bg-dark', 'text-light');
+      footer.classList.add('bg-light', 'text-dark');
+    }
+  }
+
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  applyTheme(savedTheme);
+
+  themeToggle.addEventListener('click', () => {
+    const newTheme = htmlElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(newTheme);
+  });
+</script>
+
+{% block extra_js %}{% endblock %}
+
 </body>
 </html>

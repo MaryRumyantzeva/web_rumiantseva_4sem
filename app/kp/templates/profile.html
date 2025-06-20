@@ -1,26 +1,42 @@
 {% extends 'base.html' %}
-
-{% block title %}Профиль{% endblock %}
-
 {% block content %}
-<h2>Привет, {{ current_user.username }}!</h2>
+<div class="container mt-4">
+  <h2>Привет, {{ current_user.username }}!</h2>
+  <img src="{{ url_for('kp.uploaded_file', filename=current_user.avatar_url or 'default_avatar.png') }}"
+     class="rounded-circle" style="width:150px; height:150px;">
 
-<h4 class="mt-4">Твои велосипеды:</h4>
-<div class="row">
-    {% for bike in bikes %}
-    <div class="col-md-4">
-        <div class="card bike-card">
-            <img src="{{ bike.image_url }}" class="card-img-top" alt="Фото велосипеда">
-            <div class="card-body">
-                <h5 class="card-title">{{ bike.title }}</h5>
-                <p class="card-text">{{ bike.description[:100] }}...</p>
-                <a href="{{ url_for('kp.bike_detail', bike_id=bike.id) }}" class="btn btn-sm btn-outline-primary">Подробнее</a>
-            </div>
-        </div>
+
+
+  <form method="POST" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label for="avatar" class="form-label">Загрузить новый аватар:</label>
+      <input type="file" class="form-control" name="avatar" required>
     </div>
-    {% else %}
-    <p>Ты пока не добавил ни одного велосипеда.</p>
-    {% endfor %}
+    <button class="btn btn-primary" type="submit">Сохранить</button>
+  </form>
 </div>
-{% endblock %}
 
+
+
+  <h4>Мои велосипеды:</h4>
+  {% if my_bikes %}
+    <ul>
+      {% for b in my_bikes %}
+        <li><a href="{{ url_for('kp.bike_detail', bike_id=b.id) }}">{{ b.title }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Ты пока не добавил ни одного велосипеда.</p>
+  {% endif %}
+
+  <h4>Избранные велосипеды:</h4>
+  {% if liked_bikes %}
+    <ul>
+      {% for b in liked_bikes %}
+        <li><a href="{{ url_for('kp.bike_detail', bike_id=b.id) }}">{{ b.title }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Ты ещё не поставил лайк ни одному велосипеду.</p>
+  {% endif %}
+{% endblock %}

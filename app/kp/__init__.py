@@ -6,6 +6,7 @@ def create_app():
     """Фабрика приложения"""
     app = Flask(__name__)
     app.config.from_object(Config)
+    app.debug = True
         
     # Инициализация расширений
     db.init_app(app)
@@ -19,7 +20,7 @@ def create_app():
 
     @app.route('/')
     def exam_home():
-        return redirect(url_for('kp_bp.home'))
+        return redirect(url_for('home'))
     
     # CLI команды
     from .cli import init_app
@@ -31,7 +32,7 @@ def create_app():
     
     return app
     
-    return app
+   
 
 # Создаем экземпляр приложения для импорта
 app = create_app()
