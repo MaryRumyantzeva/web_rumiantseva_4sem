@@ -10,7 +10,7 @@ import os
 import json
 import uuid
 from uuid import uuid4
-from app.utils import allowed_file  # если функция лежит в utils.py
+from .utils import allowed_file  
 from flask import abort
 
 
@@ -186,7 +186,17 @@ def profile():
             flash('Аватар обновлён!', 'success')
             return redirect(url_for('kp.profile'))
 
-    return render_template('profile.html')
+    # 💡 Добавляем велосипеды пользователя
+    my_bikes = Bike.query.filter_by(owner_id=current_user.id).all()
+
+    # 💡 Добавляем велосипеды, на которые пользователь поставил лайк
+    liked_bike_ids = [like.bike_id for like in current_user.likes]
+    liked_bikes = Bike.query.filter(Bike.id.in_(liked_bike_ids)).all()
+
+    return render_template('profile.html',
+                           my_bikes=my_bikes,
+                           liked_bikes=liked_bikes)
+
 
     
 @bp.route('/like/<int:bike_id>', methods=['POST'])
@@ -201,18 +211,15 @@ def like(bike_id):
         db.session.add(Like(user_id=current_user.id, bike_id=bike.id))
 
     db.session.commit()
-    return redirect(url_for('kp.bike_detail', bike_id=bike.id))
+    return redirect(url_for('kp.bikes', bike_id=bike.id))
 
 
 @bp.route('/bike/<int:bike_id>', methods=['GET', 'POST'])
 def bike_detail(bike_id):
     bike = Bike.query.get_or_404(bike_id)
 
-    try:
-        images = json.loads(bike.image_filenames) if bike.image_filenames else []
-    except Exception as e:
-        images = []
-        print(f"[Ошибка image_filenames]: {e}")
+    # Получаем изображения как список BikeImage объектов
+    images = bike.images  # list of BikeImage instances
 
     if request.method == 'POST' and current_user.is_authenticated:
         text = request.form.get('comment')
@@ -221,9 +228,10 @@ def bike_detail(bike_id):
             db.session.add(comment)
             db.session.commit()
             flash('Комментарий добавлен!', 'success')
-        return redirect(url_for('kp.bike_detail', bike_id=bike.id))
+        return redirect(url_for('kp.bikes', bike_id=bike.id))
 
     return render_template('bike_detail.html', bike=bike, images=images)
+
 
 @bp.route('/reserve/<int:bike_id>', methods=['POST'])
 @login_required
@@ -257,11 +265,39 @@ def edit_bike(bike_id):
         bike.title = request.form['title']
         bike.price = request.form['price']
         bike.description = request.form['description']
+
+        # === Очищаем старые изображения ===
+        if bike.images:
+            for img in bike.images:
+                # Удаляем с диска
+                old_path = os.path.join(current_app.root_path, 'static/uploads', img.filename)
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+                # Удаляем из базы
+                db.session.delete(img)
+
+        # === Загружаем новые изображения ===
+        files = request.files.getlist('images')
+        upload_folder = os.path.join(current_app.root_path, 'static/uploads')
+        os.makedirs(upload_folder, exist_ok=True)
+
+        for file in files:
+            if file and file.filename and allowed_file(file.filename):
+                filename = f"{current_user.id}_{uuid.uuid4().hex}_{secure_filename(file.filename)}"
+                filepath = os.path.join(upload_folder, filename)
+                file.save(filepath)
+                db.session.add(BikeImage(bike_id=bike.id, filename=filename))
+        print("Файл найден:", file.filename)
+        print("Разрешённый?", allowed_file(file.filename))
+
+
         db.session.commit()
         flash('Велосипед успешно обновлён!')
         return redirect(url_for('kp.bike_detail', bike_id=bike.id))
 
     return render_template('edit_bike.html', bike=bike)
+
+
 
 
 

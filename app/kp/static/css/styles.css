@@ -1,0 +1,29 @@
+body {
+  background-repeat: repeat;
+  background-size: 120px;
+  background-attachment: fixed;
+  transition: background-image 0.3s ease-in-out;
+}
+
+/* Светлая тема */
+[data-bs-theme="light"] body {
+  background-image: url('/static/images/bg3.webp');
+}
+
+/* Тёмная тема */
+[data-bs-theme="dark"] body {
+  background-image: url('/static/images/bgd2.png');
+}
+
+.btn-secondary {
+  color: white;
+  background-color: #6c757d;
+  border: none;
+}
+
+.bike-img {
+  height: 250px;        /* или 200px — по вкусу */
+  object-fit: cover;
+  object-position: center;
+}
+

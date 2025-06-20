@@ -2,7 +2,7 @@
 {% block title %}Каталог велосипедов{% endblock %}
 
 {% block content %}
-  <h1 class="text-center mb-4">Каталог велосипедов</h1>
+  <h1 class="text-center mb-4 card shadow-lg p-4 bg-body-tertiary">Каталог велосипедов</h1>
 
   {% if current_user.is_authenticated %}
     <div class="text-end mb-3">
@@ -13,7 +13,7 @@
   <!-- Поиск -->
   <form action="{{ url_for('kp.search') }}" method="GET" class="input-group mb-3">
     <input type="text" name="q" class="form-control" placeholder="Поиск...">
-    <button type="submit" class="btn btn-outline-primary">Найти</button>
+    <button type="submit" class="btn btn-primary">Найти</button>
   </form>
 
   <!-- Фильтр -->
@@ -41,7 +41,7 @@
       <input type="number" name="max_price" class="form-control" placeholder="Макс цена">
     </div>
     <div class="col-md-2">
-      <button type="submit" class="btn btn-outline-secondary w-100">Фильтр</button>
+      <button type="submit" class="btn btn-secondary w-100">Фильтр</button>
     </div>
   </form>
 
@@ -51,7 +51,9 @@
       <div class="col-md-4 mb-4">
         <div class="card h-100 shadow-sm bg-body-tertiary">
           {% if bike.images and bike.images|length > 0 %}
-            <img src="{{ url_for('static', filename='uploads/' + bike.images[0].filename) }}" class="card-img-top" alt="Фото велосипеда">
+            <img src="{{ url_for('static', filename='uploads/' + bike.images[0].filename) }}"
+     class="card-img-top bike-img"
+     alt="Фото велосипеда">
           {% else %}
             <img src="{{ url_for('static', filename='uploads/default.jpg') }}" class="card-img-top" alt="Фото велосипеда">
           {% endif %}

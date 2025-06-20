@@ -2,7 +2,7 @@
 {% block title %}{{ bike.title }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-4 card shadow-lg p-4 bg-body-tertiary">
   <a href="{{ url_for('kp.bikes') }}" class="btn btn-secondary mb-3">
     ← Назад к списку
   </a>
@@ -10,8 +10,10 @@
   <div class="row">
     <div class="col-md-6">
       {% for img in images %}
-        <img src="{{ url_for('kp.uploaded_file', filename=img) }}" class="img-fluid mb-3 rounded shadow">
+        <img src="{{ url_for('static', filename='uploads/' + img.filename) }}" class="img-fluid mb-3 rounded shadow">
       {% endfor %}
+
+
     </div>
 
     <div class="col-md-6">

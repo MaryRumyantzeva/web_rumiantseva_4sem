@@ -3,43 +3,46 @@
 {% block title %}Добавить велосипед{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Добавить велосипед</h2>
-<form method="POST" enctype="multipart/form-data">
-    <div class="mb-3">
-        <label for="title" class="form-label">Название</label>
-        <input type="text" class="form-control" name="title" id="title" required>
-    </div>
-    <div class="mb-3">
-        <label for="description" class="form-label">Описание</label>
-        <textarea class="form-control" name="description" id="description" rows="3"></textarea>
-    </div>
-    <div class="mb-3">
-        <label for="price" class="form-label">Цена</label>
-        <input type="number" step="0.01" class="form-control" name="price" id="price" required>
-    </div>
-    <div class="mb-3">
-        <label for="category" class="form-label">Категория</label>
-        <div class="mb-3">
-  <label for="category" class="form-label">Категория</label>
-  <select class="form-select" name="category" id="category" required>
-    <option value="горный">горный (самый топ)</option>
-    <option value="двухподвес">двухподвес (имба)</option>
-    <option value="шоссейный">шоссейный (ужас просто)</option>
-    <option value="городской">городской (нормис)</option>
-    <option value="детский">детский (лайк)</option>
-    <option value="гревел">гревел (на странном)</option>
-    <option value="дх">дх (для крутых)</option>
-    <option value="bmx">bmx (а ты необычный)</option>
-    <option value="fix">fix (ты адекватный?)</option>
-  </select>
-</div>
+<div class="card shadow-lg p-4 bg-body-tertiary">
+  <h2 class="mb-4">Добавить велосипед</h2>
 
-    </div>
+  <form method="POST" enctype="multipart/form-data">
     <div class="mb-3">
-    <label class="form-label">Фото (до 5)</label>
-    <input type="file" name="images" class="form-control" accept="image/*" multiple>
-  </div>
-  <button type="submit" class="btn btn-success">Добавить велосипед</button>
-    
-</form>
+      <label for="title" class="form-label">Название</label>
+      <input type="text" class="form-control" name="title" id="title" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="description" class="form-label">Описание</label>
+      <textarea class="form-control" name="description" id="description" rows="3"></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="price" class="form-label">Цена</label>
+      <input type="number" step="0.01" class="form-control" name="price" id="price" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="category" class="form-label">Категория</label>
+      <select class="form-select" name="category" id="category" required>
+        <option value="горный">горный (самый топ)</option>
+        <option value="двухподвес">двухподвес (имба)</option>
+        <option value="шоссейный">шоссейный (ужас просто)</option>
+        <option value="городской">городской (нормис)</option>
+        <option value="детский">детский (лайк)</option>
+        <option value="гревел">гревел (на странном)</option>
+        <option value="дх">дх (для крутых)</option>
+        <option value="bmx">bmx (а ты необычный)</option>
+        <option value="fix">fix (ты адекватный?)</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Фото </label>
+      <input type="file" name="images" class="form-control" accept="image/*" multiple>
+    </div>
+
+    <button type="submit" class="btn btn-success">Добавить велосипед</button>
+  </form>
+</div>
 {% endblock %}

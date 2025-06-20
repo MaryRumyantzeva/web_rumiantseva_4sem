@@ -15,9 +15,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="index-hero text-center py-5 text-white">
-  <h1>Добро пожаловать в Веломаркет!</h1>
-  <p>Покупай, продавай, крути!</p>
+<div class="index-hero text-center py-5 card shadow-lg p-4 bg-body-tertiary">
+   <h1>Покупай, продавай, крути!</h1>
    <p>Текущий пользователь: 
      {% if current_user.is_authenticated %}
        {{ current_user.username }}
