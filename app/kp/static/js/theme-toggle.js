@@ -8,10 +8,11 @@ function updateBackground(theme) {
   const body = document.body;
 
   if (theme === 'dark') {
-    body.style.backgroundImage = "url('/static/images/bgd2.png')";
-  } else {
-    body.style.backgroundImage = "url('/static/images/bg3.png')";
-  }
+  body.style.backgroundImage = "url('{{ url_for('kp.static', filename='images/bgd.png') }}')";
+} else {
+  body.style.backgroundImage = "url('{{ url_for('kp.static', filename='images/bg.png') }}')";
+}
+
 }
 
 // Функция применения темы

@@ -40,6 +40,19 @@
     {% else %}
       <p class="text-muted">Ты ещё не поставил лайк ни одному велосипеду.</p>
     {% endif %}
+
+    <hr>
+<h4>Забронированные велосипеды:</h4>
+{% if reserved_bikes %}
+  <ul>
+    {% for b in reserved_bikes %}
+      <li><a href="{{ url_for('kp.bike_detail', bike_id=b.id) }}">{{ b.title }}</a></li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-muted">У тебя нет забронированных велосипедов.</p>
+{% endif %}
+
   </div>
 </div>
 {% endblock %}

@@ -192,9 +192,13 @@ def profile():
     liked_bike_ids = [like.bike_id for like in current_user.likes]
     liked_bikes = Bike.query.filter(Bike.id.in_(liked_bike_ids)).all()
 
+    reserved_bike_ids = [res.bike_id for res in current_user.reservations]
+    reserved_bikes = Bike.query.filter(Bike.id.in_(reserved_bike_ids)).all()
+
     return render_template('profile.html',
                            my_bikes=my_bikes,
-                           liked_bikes=liked_bikes)
+                           liked_bikes=liked_bikes,
+                           reserved_bikes=reserved_bikes)
 
 
     
@@ -228,8 +232,16 @@ def bike_detail(bike_id):
             db.session.commit()
             flash('Комментарий добавлен!', 'success')
         return redirect(url_for('kp.bikes', bike_id=bike.id))
+    
+    reserved_by_user = None
+    if current_user.is_authenticated:
+        reserved_by_user = Reservation.query.filter_by(user_id=current_user.id, bike_id=bike.id).first()
+    
+    is_reserved = Reservation.query.filter_by(bike_id=bike.id).first() is not None
 
-    return render_template('bike_detail.html', bike=bike, images=images)
+    return render_template('bike_detail.html', bike=bike, images=images,
+                           reserved_by_user=reserved_by_user,
+                           is_reserved=is_reserved)
 
 
 @bp.route('/reserve/<int:bike_id>', methods=['POST'])
@@ -257,41 +269,38 @@ def reserve(bike_id):
 def edit_bike(bike_id):
     bike = Bike.query.get_or_404(bike_id)
 
+    # Проверка доступа: владелец или админ
     if current_user.id != bike.owner_id and not current_user.is_admin:
         abort(403)
 
     if request.method == 'POST':
+        # Обновление базовых данных
         bike.title = request.form['title']
         bike.price = request.form['price']
         bike.description = request.form['description']
 
-        # === Очищаем старые изображения ===
-        if bike.images:
+        # Получаем файлы
+        files = request.files.getlist('images')
+
+        if files and any(f.filename for f in files):
+            # Удаляем старые изображения
             for img in bike.images:
-                # Удаляем с диска
                 old_path = os.path.join(current_app.root_path, 'static/uploads', img.filename)
                 if os.path.exists(old_path):
                     os.remove(old_path)
-                # Удаляем из базы
                 db.session.delete(img)
 
-        # === Загружаем новые изображения ===
-        files = request.files.getlist('images')
-        upload_folder = os.path.join(current_app.root_path, 'static/uploads')
-        os.makedirs(upload_folder, exist_ok=True)
-
-        for file in files:
-            if file and file.filename and allowed_file(file.filename):
-                filename = f"{current_user.id}_{uuid.uuid4().hex}_{secure_filename(file.filename)}"
-                filepath = os.path.join(upload_folder, filename)
-                file.save(filepath)
-                db.session.add(BikeImage(bike_id=bike.id, filename=filename))
-        print("Файл найден:", file.filename)
-        print("Разрешённый?", allowed_file(file.filename))
-
+            # Сохраняем новые изображения
+            upload_folder = current_app.config['UPLOAD_FOLDER']
+            for file in files:
+                if file and allowed_file(file.filename):
+                    filename = f"{current_user.id}_{uuid.uuid4().hex}_{secure_filename(file.filename)}"
+                    filepath = os.path.join(upload_folder, filename)
+                    file.save(filepath)
+                    db.session.add(BikeImage(bike_id=bike.id, filename=filename))
 
         db.session.commit()
-        flash('Велосипед успешно обновлён!')
+        flash('Велосипед успешно обновлён!', 'success')
         return redirect(url_for('kp.bike_detail', bike_id=bike.id))
 
     return render_template('edit_bike.html', bike=bike)

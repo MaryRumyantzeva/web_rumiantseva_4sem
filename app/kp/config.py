@@ -19,7 +19,7 @@ class Config:
     REMEMBER_COOKIE_DURATION = timedelta(days=30)
     
     # Настройки загрузки файлов
-    UPLOAD_FOLDER = os.path.join(basedir, 'app', 'static', 'uploads')
+    UPLOAD_FOLDER = os.path.join(basedir,  'static', 'uploads')
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
     

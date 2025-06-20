@@ -7,12 +7,12 @@ body {
 
 /* Светлая тема */
 [data-bs-theme="light"] body {
-  background-image: url('/static/images/bg3.webp');
+  background-image: url('/static/images/bg.png');
 }
 
 /* Тёмная тема */
 [data-bs-theme="dark"] body {
-  background-image: url('/static/images/bgd2.png');
+  background-image: url('/static/images/bgd.png');
 }
 
 .btn-secondary {

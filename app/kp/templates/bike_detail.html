@@ -32,14 +32,18 @@
     </button>
   </form>
 
-  {% if current_user.id != bike.owner_id %}
-    <!-- 📌 Забронировать -->
-    <form method="POST" action="{{ url_for('kp.reserve', bike_id=bike.id) }}" class="d-inline ms-2">
-      <button type="submit" class="btn btn-success">
-        📌 Забронировать
-      </button>
+  <!--📌Забронировать-->
+
+  {% if current_user.is_authenticated and current_user.id != bike.owner_id %}
+  {% if is_reserved %}
+    <button class="btn btn-secondary" disabled>Уже забронировано</button>
+  {% else %}
+    <form method="post" action="{{ url_for('kp.reserve', bike_id=bike.id) }}">
+      <button type="submit" class="btn btn-success">📌Забронировать</button>
     </form>
   {% endif %}
+{% endif %}
+
 
   {% if current_user.id == bike.owner_id %}
     <!-- ✏️ Редактировать -->
