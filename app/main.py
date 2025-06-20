@@ -3,9 +3,6 @@ import sys
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from flask import Flask
 
-# Добавляем корень проекта в PYTHONPATH
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 # Создаем основное приложение
 main_app = Flask(__name__)
 main_app.config['SECRET_KEY'] = 'f038a541489b89f81762d12edfdd03835ceea10cfb3cdbdabfbfa0f48b0d4803'
@@ -50,9 +47,7 @@ def home():
     <div class="nav">
         <h2>Доступные разделы:</h2>
         <a href="/kp/">Курсач</a>
-        <a href="/lab1/">Лабораторная работа 1</a>
-        <a href="/lab2/">Лабораторная работа 2</a>
-        <a href="/lab3/">Лабораторная работа 3</a>
+        
         <a href="/exam/">Экзаменационный проект</a>
     </div>
 </body>
