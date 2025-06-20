@@ -12,9 +12,9 @@ main_app.config['SECRET_KEY'] = 'f038a541489b89f81762d12edfdd03835ceea10cfb3cdbd
 main_app.config['DEBUG'] = True
 
 # Импортируем приложения (теперь с абсолютными путями)
-from app.lab1.app import app as lab1_app
-from app.lab2.app import app as lab2_app
-from app.lab3.app import app as lab3_app
+#from app.lab1.app import app as lab1_app
+#from app.lab2.app import app as lab2_app
+#from app.lab3.app import app as lab3_app
 from app.kp.app import app as kp_app
 from app.exam.app import app as exam_app
 
@@ -22,9 +22,9 @@ from app.exam.app import app as exam_app
 app = DispatcherMiddleware(main_app, {
     '/kp': kp_app,
     '/exam': exam_app,
-    '/lab1': lab1_app,
-    '/lab2': lab2_app,
-    '/lab3': lab3_app
+    #'/lab1': lab1_app,
+    #'/lab2': lab2_app,
+    #'/lab3': lab3_app
 })
 
 
