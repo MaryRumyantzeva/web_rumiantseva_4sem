@@ -21,3 +21,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+fetch(`/events/delete/${eventId}`, {
+    method: 'POST',
+    headers: {
+        'X-CSRFToken': csrfToken,
+        'Content-Type': 'application/json'
+    }
+}).then(response => {
+    if (response.ok) {
+        window.location.reload();
+    } else {
+        return response.text().then(text => {
+            alert('Ошибка при удалении: ' + text);
+        });
+    }
+}).catch(error => {
+    alert('Ошибка сети: ' + error);
+});

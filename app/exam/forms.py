@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, DateField, IntegerField, FileField, BooleanField
 from wtforms import StringField, PasswordField, DateTimeField  
-from wtforms.validators import DataRequired 
+from wtforms.validators import DataRequired, Optional
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from wtforms.fields import DateTimeField
 from datetime import datetime
@@ -30,5 +30,10 @@ class EventForm(FlaskForm):
     submit = SubmitField('Сохранить')
 
 class RegistrationForm(FlaskForm):
+    username = StringField('Имя пользователя', validators=[DataRequired()])
+    password = PasswordField('Пароль', validators=[DataRequired()])
     contact_info = StringField('Контактные данные', validators=[DataRequired()])
     submit = SubmitField('Зарегистрироваться')
+    first_name = StringField('Имя',  validators=[DataRequired()])
+    last_name = StringField('Фамилия',  validators=[DataRequired()])
+    middle_name = StringField('Отчество', validators=[Optional()])

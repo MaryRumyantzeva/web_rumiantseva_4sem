@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app, jsonify
 from flask_login import login_required, current_user
+from flask_wtf import FlaskForm
 from datetime import datetime
 from ..models import Event, User, event_volunteer, db
 from .utils import role_required
@@ -55,7 +56,8 @@ def index():
 def details(event_id):
     try:
         event = Event.query.get_or_404(event_id)
-        return render_template('events/details.html', event=event)
+        form = FlaskForm()  # нужен только для CSRF
+        return render_template('events/details.html', event=event, form=form)
     except Exception as e:
         flash(f'Мероприятие не найдено: {str(e)}', 'danger')
         return redirect(url_for('events.index'))
@@ -65,48 +67,45 @@ def details(event_id):
 @role_required('admin')
 def create():
     form = EventForm()
-    print("Файл получен:", request.files)  # Добавьте перед validate_on_submit
-    print("Валидация формы:", form.validate_on_submit())
-    print("Ошибки формы:", form.errors)
+
     if form.validate_on_submit():
         try:
-            # Сохранение файла
             file = form.image.data
-            filename = secure_filename(file.filename)
-            upload_dir = os.path.join(current_app.root_path, 'static', 'uploads')
-            
-            # Создаем папку, если её нет
-            os.makedirs(upload_dir, exist_ok=True)
-            
-            filepath = os.path.join(upload_dir, filename)
-            file.save(filepath)
-            
-            # Создание мероприятия
+            filename = None
+
+            # Обработка файла
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                upload_dir = os.path.join(current_app.root_path, 'exam', 'static', 'uploads')
+                os.makedirs(upload_dir, exist_ok=True)
+                file.save(os.path.join(upload_dir, filename))
+            else:
+                flash("Недопустимый формат изображения", "danger")
+                return render_template('events/add_edit_event.html', form=form)
+
+            # Создание события
             event = Event(
                 title=form.title.data,
                 description=form.description.data,
                 date=form.date.data,
                 location=form.location.data,
                 volunteers_needed=form.volunteers_needed.data,
-                image_filename=filename,  # Сохраняем только имя файла
+                image_filename=filename,
                 organizer_id=current_user.id
             )
-            
             db.session.add(event)
             db.session.commit()
-            flash('Мероприятие успешно создано!', 'success')
+
+            flash("Мероприятие успешно создано!", "success")
             return redirect(url_for('events.index'))
-            
+
         except Exception as e:
             db.session.rollback()
-            flash(f'Ошибка: {str(e)}', 'danger')
-            current_app.logger.error(f"Ошибка создания мероприятия: {str(e)}")
-    
-    return render_template('events/create.html', form=form)
+            current_app.logger.error(f"Ошибка при создании события: {str(e)}")
+            flash(f"Ошибка при создании: {str(e)}", "danger")
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
+    return render_template("events/add_edit_event.html", form=form)
+
 
 @bp.route('/edit/<int:event_id>', methods=['GET', 'POST'])
 @login_required
@@ -114,24 +113,31 @@ def allowed_file(filename):
 def edit(event_id):
     try:
         event = Event.query.get_or_404(event_id)
-        
-        if request.method == 'POST':
-            event.title = request.form.get('title', event.title)
-            event.description = request.form.get('description', event.description)
-            event.date = datetime.strptime(request.form.get('date'), '%Y-%m-%dT%H:%M')
-            event.location = request.form.get('location', event.location)
-            event.volunteers_needed = int(request.form.get('volunteers_needed', event.volunteers_needed))
-            
+        form = EventForm(obj=event)
+
+        if form.validate_on_submit():
+            form.populate_obj(event)
+
+            # Обработка новой картинки (если загружена)
+            if form.image.data and allowed_file(form.image.data.filename):
+                file = form.image.data
+                filename = secure_filename(file.filename)
+                upload_dir = os.path.join(current_app.root_path, 'exam', 'static', 'uploads')
+                os.makedirs(upload_dir, exist_ok=True)
+                file.save(os.path.join(upload_dir, filename))
+                event.image_filename = filename
+
             db.session.commit()
-            flash('Мероприятие обновлено!', 'success')
+            flash("Мероприятие обновлено!", "success")
             return redirect(url_for('events.details', event_id=event.id))
-            
-        return render_template('events/edit.html', event=event)
-        
+
+        return render_template("events/add_edit_event.html", form=form, event=event)
+
     except Exception as e:
         db.session.rollback()
-        flash(f'Ошибка при редактировании: {str(e)}', 'danger')
+        flash(f"Ошибка при редактировании: {str(e)}", "danger")
         return redirect(url_for('events.index'))
+
 
 @bp.route('/delete/<int:event_id>', methods=['POST'])
 @login_required
@@ -141,12 +147,10 @@ def delete(event_id):
         event = Event.query.get_or_404(event_id)
         db.session.delete(event)
         db.session.commit()
-        flash('Мероприятие удалено', 'success')
+        return '', 204  # <-- Важно: возвращаем пустой успешный ответ
     except Exception as e:
         db.session.rollback()
-        flash(f'Ошибка при удалении: {str(e)}', 'danger')
-    
-    return redirect(url_for('events.index'))
+        return jsonify({'error': str(e)}), 500
 
 @bp.context_processor
 def utility_processor():

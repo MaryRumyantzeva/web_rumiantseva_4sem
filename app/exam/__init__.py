@@ -1,6 +1,10 @@
 from flask import Flask, redirect, url_for
 from .config import Config
 from .extensions import db, login_manager, migrate
+from flask_wtf import CSRFProtect
+
+
+csrf = CSRFProtect()
 
 def create_app():
     """Фабрика приложения"""
@@ -26,6 +30,8 @@ def create_app():
     # CLI команды
     from .cli import init_app
     init_app(app)
+
+    csrf.init_app(app)
     
     return app
 

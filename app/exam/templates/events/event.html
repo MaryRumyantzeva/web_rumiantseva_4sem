@@ -24,7 +24,7 @@
     {% endif %}
 
     <!-- Кнопки редактирования (только для организатора или админа) -->
-    {% if current_user == event.organizer or current_user.role.name == 'admin' %}
+    {% if current_user == event.organizer or current_user.role.name == 'admin' or current_user.role.name == 'moderator'%}
     <div class="event-actions">
         <a href="{{ url_for('events.edit_event', event_id=event.id) }}" class="btn btn-secondary">Редактировать</a>
         <form method="POST" action="{{ url_for('events.delete_event', event_id=event.id) }}" style="display:inline;">

@@ -35,13 +35,30 @@ class User(db.Model, UserMixin):
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(25), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
+    username = db.Column(db.String(25), unique=True, nullable=True)
+    password_hash = db.Column(db.String(256), nullable=True)
     first_name = db.Column(db.String(25), nullable=False)
-    last_name = db.Column(db.String(25), nullable=False)
-    middle_name = db.Column(db.String(25))
-    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    last_name = db.Column(db.String(25), nullable=True)
+    middle_name = db.Column(db.String(25), nullable=True)
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    contact_info = db.Column(db.String(255), nullable=True)
+
+
+    role = db.relationship('Role', backref='users')
+
+    @property
+    def is_admin(self):
+        return self.role and self.role.name == 'admin'
+
+    @property
+    def is_moderator(self):
+        return self.role and self.role.name == 'moderator'
+
+    @property
+    def is_user(self):
+        return self.role and self.role.name == 'user'
+
     
     # Relationships
     role = db.relationship('Role', back_populates='users')
