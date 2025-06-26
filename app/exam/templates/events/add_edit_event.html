@@ -24,7 +24,7 @@
 
       <div class="mb-3">
         {{ form.description.label(class="form-label") }}
-        {{ form.description(class="form-control", placeholder="Описание", rows="4") }}
+        {{ form.description(class="form-control", id="markdown-editor", placeholder="Описание", rows="8") }}
         {% if form.description.errors %}
           <div class="text-danger">{{ form.description.errors[0] }}</div>
         {% endif %}
@@ -68,4 +68,18 @@
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      new EasyMDE({
+        element: document.getElementById("markdown-editor"),
+        spellChecker: false,
+        autosave: { enabled: true, uniqueId: "event_description", delay: 1000 }
+      });
+    });
+  </script>
 {% endblock %}

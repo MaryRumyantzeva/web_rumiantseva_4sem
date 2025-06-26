@@ -2,69 +2,85 @@
 
 {% block content %}
 <div class="container mt-4">
-  <h1>{{ event.title }}</h1>
+  <h1 class="mb-4">{{ event.title }}</h1>
 
-  <!-- Основная информация -->
   <div class="card mb-4">
+    {% if event.image_filename %}
+      <img src="{{ url_for('static', filename='uploads/' + event.image_filename) }}"
+           class="card-img-top" alt="{{ event.title }}">
+    {% endif %}
+
     <div class="card-body">
-      <p class="card-text">{{ event.description }}</p>
+      <div class="mb-3">
+        {{ event.safe_description | safe }}
+      </div>
       <p><strong>Дата:</strong> {{ event.date.strftime('%d.%m.%Y %H:%M') }}</p>
       <p><strong>Место:</strong> {{ event.location }}</p>
       <p><strong>Организатор:</strong> {{ event.organizer.full_name }}</p>
-      <p><strong>Волонтеров:</strong> {{ event.volunteers_count }}/{{ event.volunteers_needed }}</p>
+
+      {% if event.volunteers_count >= event.volunteers_needed %}
+        <p><strong>Волонтеров:</strong>
+          <span class="text-danger">
+            Набор завершён ({{ event.volunteers_count }}/{{ event.volunteers_needed }})
+          </span>
+        </p>
+      {% else %}
+        <p><strong>Волонтеров:</strong> {{ event.volunteers_count }}/{{ event.volunteers_needed }}</p>
+      {% endif %}
     </div>
   </div>
 
-  <!-- Регистрация -->
-  {% if current_user.is_authenticated %}
-    {% if event.is_registered(current_user) %}
-      <div class="alert alert-info">Вы уже зарегистрированы на это мероприятие</div>
+  {% if current_user.is_authenticated and current_user.is_user %}
+    {% set reg = current_user.get_volunteer_status(event.id) %}
+    {% if reg %}
+      <div class="alert alert-info">Вы уже зарегистрированы. Статус: {{ reg }}</div>
     {% elif event.is_registration_open %}
       <form method="POST" action="{{ url_for('events.register', event_id=event.id) }}">
         {{ form.csrf_token }}
-        <button type="submit" class="btn btn-success mb-4">Зарегистрироваться</button>
+        <button type="submit" class="btn btn-success mb-3">Зарегистрироваться</button>
       </form>
     {% else %}
-      <div class="alert alert-warning">Регистрация закрыта</div>
+      <div class="alert alert-warning">Регистрация на мероприятие закрыта.</div>
     {% endif %}
   {% endif %}
 
-  <!-- Управление заявками -->
   {% if current_user.is_authenticated and current_user.role.name in ['admin', 'moderator'] %}
     <div class="card mt-4">
-      <div class="card-header">
-        <h4>Заявки волонтеров</h4>
-      </div>
+      <div class="card-header"><strong>Заявки волонтёров</strong></div>
       <div class="card-body">
-        {% set volunteers = event.volunteers.all() %}
-        {% if volunteers %}
+        {% if event.pending_registrations %}
           <ul class="list-group">
-            {% for volunteer in volunteers %}
-              {% set status = db.session.execute(
-                select([event_volunteer.c.status])
-                .where(event_volunteer.c.event_id == event.id)
-                .where(event_volunteer.c.volunteer_id == volunteer.id)
-              ).scalar() %}
+            {% for reg in event.pending_registrations %}
               <li class="list-group-item d-flex justify-content-between align-items-center">
-                {{ volunteer.full_name }}
-                <span class="badge bg-{{ 'success' if status == 'accepted' else 'warning' }}">
-                  {{ status }}
-                </span>
+                <div>{{ reg.volunteer.full_name }} | {{ reg.contact_info }}</div>
                 <div>
-                  <a href="{{ url_for('events.accept_volunteer', event_id=event.id, user_id=volunteer.id) }}" 
-                     class="btn btn-sm btn-success">
-                    Принять
-                  </a>
-                  <a href="{{ url_for('events.reject_volunteer', event_id=event.id, user_id=volunteer.id) }}" 
-                     class="btn btn-sm btn-danger ms-2">
-                    Отклонить
-                  </a>
+                  <a href="{{ url_for('events.accept_volunteer', event_id=event.id, user_id=reg.volunteer.id) }}"
+                     class="btn btn-sm btn-success">Принять</a>
+                  <a href="{{ url_for('events.reject_volunteer', event_id=event.id, user_id=reg.volunteer.id) }}"
+                     class="btn btn-sm btn-danger ms-2">Отклонить</a>
                 </div>
               </li>
             {% endfor %}
           </ul>
         {% else %}
-          <p>Нет заявок от волонтеров</p>
+          <p class="text-muted">Нет заявок на рассмотрении.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-header"><strong>Принятые волонтёры</strong></div>
+      <div class="card-body">
+        {% if event.accepted_registrations %}
+          <ul class="list-group">
+            {% for reg in event.accepted_registrations %}
+              <li class="list-group-item">
+                {{ reg.volunteer.full_name }} | {{ reg.contact_info }} | {{ reg.registration_date.strftime('%d.%m.%Y %H:%M') }}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted">Нет принятых волонтёров.</p>
         {% endif %}
       </div>
     </div>

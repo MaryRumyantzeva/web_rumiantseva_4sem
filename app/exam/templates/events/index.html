@@ -4,18 +4,7 @@
 <div class="container mt-4">
 
   <!-- Flash-сообщения -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="flash-messages">
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
+ 
 
   <h1 class="mb-4">Актуальные мероприятия</h1>
 
@@ -35,6 +24,15 @@
                   <i class="bi bi-geo-alt"></i> {{ event.location }}
                 </small>
               </p>
+              {% if event.volunteers_count >= event.volunteers_needed %}
+                <p class="text-danger mb-1">
+                  Набор завершён ({{ event.volunteers_count }}/{{ event.volunteers_needed }})
+                </p>
+              {% else %}
+                <p class="mb-1">
+                  Волонтёров: {{ event.volunteers_count }}/{{ event.volunteers_needed }}
+                </p>
+              {% endif %}
               <p class="card-text">{{ event.description|truncate(150) }}</p>
             </div>
             <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
@@ -51,7 +49,6 @@
                     <button class="btn btn-sm btn-outline-danger delete-btn" data-event-id="{{ event.id }}">
                       <i class="bi bi-trash"></i>
                     </button>
-
                   {% endif %}
                 </div>
               {% endif %}
@@ -72,17 +69,17 @@
               </a>
             </li>
           {% endif %}
-          
           {% if events.has_next %}
             <li class="page-item">
               <a class="page-link" href="{{ url_for('events.index', page=events.next_num) }}">
-                Вперед &raquo;
+                Вперёд &raquo;
               </a>
             </li>
           {% endif %}
         </ul>
       </nav>
     {% endif %}
+
   {% else %}
     <div class="alert alert-info">
       <i class="bi bi-info-circle-fill"></i> Нет доступных мероприятий.
@@ -92,7 +89,7 @@
     </div>
   {% endif %}
 
-  <!-- Кнопка добавления -->
+  <!-- Кнопка добавления мероприятия (только для admin) -->
   {% if current_user.is_authenticated and current_user.role.name == 'admin' %}
     <div class="fixed-bottom mb-4 me-4" style="left: auto; right: 20px;">
       <a href="{{ url_for('events.create') }}" class="btn btn-success btn-lg rounded-circle shadow">
@@ -102,16 +99,16 @@
   {% endif %}
 </div>
 
-<!-- Скрипт для автозакрытия flash-сообщений -->
+<!-- Авто-закрытие алертов -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const alerts = document.querySelectorAll('.alert-dismissible');
-    alerts.forEach(alert => {
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
-        }, 5000);
-    });
+  const alerts = document.querySelectorAll('.alert-dismissible');
+  alerts.forEach(alert => {
+    setTimeout(() => {
+      const bsAlert = new bootstrap.Alert(alert);
+      bsAlert.close();
+    }, 5000);
+  });
 });
 </script>
 {% endblock %}
