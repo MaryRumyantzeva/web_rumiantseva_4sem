@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Вишлист</title>
+    <style>
+        body { font-family: Arial; max-width: 600px; margin: auto; }
+        .item { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+        .reserved { color: gray; }
+    </style>
+</head>
+<body>
+    <h1>🎁 Вишлист</h1>
+
+    <form method="POST" action="/add">
+        <input type="text" name="title" placeholder="Название" required>
+        <input type="text" name="description" placeholder="Описание">
+        <input type="password" name="password" placeholder="Пароль">
+        <button type="submit">Добавить</button>
+    </form>
+
+    <hr>
+
+    {% for item in items %}
+        <div class="item">
+            <h3>{{ item.title }}</h3>
+            <p>{{ item.description }}</p>
+            {% if item.reserved_by %}
+                <p class="reserved">Уже кто-то хочет подарить 🎁</p>
+            {% else %}
+                <form method="POST" action="/reserve/{{ item.id }}">
+                    <button type="submit">Хочу подарить</button>
+                </form>
+            {% endif %}
+        </div>
+    {% endfor %}
+</body>
+</html>

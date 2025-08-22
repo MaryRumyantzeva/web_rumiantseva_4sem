@@ -14,11 +14,14 @@ main_app.config['DEBUG'] = True
 #from app.lab3.app import app as lab3_app
 from app.kp.app import app as kp_app
 from app.exam.app import app as exam_app
+from app.vlist.app import app as vlist_app
+
 
 # Настройка маршрутизации
 app = DispatcherMiddleware(main_app, {
     '/kp': kp_app,
     '/exam': exam_app,
+    '/vlist': vlist_app, 
     #'/lab1': lab1_app,
     #'/lab2': lab2_app,
     #'/lab3': lab3_app
