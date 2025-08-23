@@ -52,6 +52,8 @@ def home():
         <a href="/kp/">Курсач</a>
         
         <a href="/exam/">Экзаменационный проект</a>
+
+        <a href="/vlist/">Вишлист</a>        
     </div>
 </body>
 </html>
