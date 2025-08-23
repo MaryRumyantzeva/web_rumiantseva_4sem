@@ -1,37 +1,92 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Вишлист</title>
+    <meta charset="UTF-8">
+    <title>🎁 Вишлист</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        body { font-family: Arial; max-width: 600px; margin: auto; }
-        .item { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
-        .reserved { color: gray; }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .item {
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            width: 300px;
+        }
+        .item img {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+        .reserved {
+            color: red;
+            font-weight: bold;
+        }
+        .admin-btns {
+            margin-top: 10px;
+        }
+        button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .reserve-btn { background: #4CAF50; color: white; }
+        .delete-btn { background: #e74c3c; color: white; }
+        .add-form {
+            margin-top: 30px;
+            padding: 15px;
+            border: 1px solid #aaa;
+            border-radius: 10px;
+            width: 350px;
+        }
     </style>
 </head>
 <body>
     <h1>🎁 Вишлист</h1>
 
-    <form method="POST" action="/add">
-        <input type="text" name="title" placeholder="Название" required>
-        <input type="text" name="description" placeholder="Описание">
-        <input type="password" name="password" placeholder="Пароль">
-        <button type="submit">Добавить</button>
-    </form>
-
-    <hr>
-
-    {% for item in items %}
+    <div class="container">
+        {% for item in items %}
         <div class="item">
             <h3>{{ item.title }}</h3>
             <p>{{ item.description }}</p>
+            {% if item.image %}
+                <img src="{{ url_for('static', filename='uploads/' ~ item.image) }}" width="200">
+            {% endif %}
             {% if item.reserved_by %}
-                <p class="reserved">Уже кто-то хочет подарить 🎁</p>
+                {% if item.reserved_by == guest_id %}
+                    <form method="POST" action="/unreserve/{{ item.id }}">
+                        <button type="submit">❌ Отменить бронь</button>
+                    </form>
+                {% else %}
+                    <p class="reserved">Уже кто-то хочет подарить 🎁</p>
+                {% endif %}
             {% else %}
                 <form method="POST" action="/reserve/{{ item.id }}">
                     <button type="submit">Хочу подарить</button>
                 </form>
             {% endif %}
+            
+            {% if is_admin %}
+                <form method="POST" action="/delete/{{ item.id }}">
+                    <button type="submit" class="delete-btn">Удалить</button>
+                </form>
+            {% endif %}
         </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
+
+    {% if is_admin %}
+    <hr>
+    <form method="POST" action="/add" enctype="multipart/form-data">
+        <input type="text" name="title" placeholder="Название" required>
+        <input type="text" name="description" placeholder="Описание">
+        <input type="file" name="image" accept="image/*">
+        <button type="submit">➕ Добавить хотелку</button>
+    </form>
+    <p style="text-align:center;"><a href="/logout">Выйти</a></p>
+    {% else %}
+    <p style="text-align:center;"><a href="/login">Вход для администратора</a></p>
+    {% endif %}
 </body>
+
 </html>
