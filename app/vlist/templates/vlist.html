@@ -83,9 +83,9 @@
         <input type="file" name="image" accept="image/*">
         <button type="submit">➕ Добавить хотелку</button>
     </form>
-    <p style="text-align:center;"><a href="/logout">Выйти</a></p>
+    <p style="text-align:center;"><a href="{{ url_for('vlist.logout') }}">Выйти</a></p>
     {% else %}
-    <p style="text-align:center;"><a href="/login">Вход для администратора</a></p>
+    <p style="text-align:center;"><a href="{{ url_for('vlist.login') }}">Вход для администратора</a></p>
     {% endif %}
 </body>
 
