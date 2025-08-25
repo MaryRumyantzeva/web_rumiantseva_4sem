@@ -54,20 +54,20 @@
             {% endif %}
             {% if item.reserved_by %}
                 {% if item.reserved_by == guest_id %}
-                    <form method="POST" action="/unreserve/{{ item.id }}">
+                    <form method="POST" action="{{ url_for('vlist.unreserve', item_id=item.id) }}">
                         <button type="submit">❌ Отменить бронь</button>
                     </form>
                 {% else %}
                     <p class="reserved">Уже кто-то хочет подарить 🎁</p>
                 {% endif %}
             {% else %}
-                <form method="POST" action="/reserve/{{ item.id }}">
+                <form method="POST" action="{{ url_for('vlist.reserve', item_id=item.id) }}">
                     <button type="submit">Хочу подарить</button>
                 </form>
             {% endif %}
             
             {% if is_admin %}
-                <form method="POST" action="/delete/{{ item.id }}">
+                <form method="POST" action="{{ url_for('vlist.delete_item', item_id=item.id) }}">
                     <button type="submit" class="delete-btn">Удалить</button>
                 </form>
             {% endif %}
@@ -77,7 +77,7 @@
 
     {% if is_admin %}
     <hr>
-    <form method="POST" action="/add" enctype="multipart/form-data">
+    <form method="POST" action="{{ url_for('vlist.add_item') }}" enctype="multipart/form-data">
         <input type="text" name="title" placeholder="Название" required>
         <input type="text" name="description" placeholder="Описание">
         <input type="file" name="image" accept="image/*">
@@ -88,5 +88,4 @@
     <p style="text-align:center;"><a href="{{ url_for('vlist.login') }}">Вход для администратора</a></p>
     {% endif %}
 </body>
-
 </html>
